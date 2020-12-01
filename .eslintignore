@@ -1,0 +1,2 @@
+# Don't ever lint node_modules
+/node_modules
