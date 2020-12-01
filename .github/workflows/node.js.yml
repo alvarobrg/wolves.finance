@@ -55,7 +55,7 @@ jobs:
         with:
           path: |
             node_modules
-          key: npm-install-${{ matrix.node-version }}-${{ hashFiles('package.json', 'yarn.lock') }}
+          key: npm-install-${{ matrix.os }}-${{ matrix.node-version }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
       - name: yarn install
         if: steps.restore-node.outputs.cache-hit != 'true'
@@ -66,6 +66,9 @@ jobs:
 
       - name: yarn lint
         run: yarn lint
+
+      - name: yarn compile
+        run: yarn compile
 
       - name: yarn test
         run: yarn test

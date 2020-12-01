@@ -23,10 +23,13 @@
   "scripts": {
     "audit": "audit-ci --moderate --package-manager yarn",
     "build": "react-scripts build",
+    "compile": "hardhat compile",
     "format": "prettier --write . && eslint --fix .",
     "lint": "prettier --check . && eslint .",
     "start": "react-scripts start",
-    "test": "ts-mocha --recursive --extension ts --require esm && CI=true react-scripts test --passWithNoTests"
+    "test": "yarn test-chain && yarn test-app",
+    "test-app": "CI=true react-scripts test --passWithNoTests",
+    "test-chain": "ts-mocha --recursive --extension ts --require esm"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
@@ -58,6 +61,7 @@
     "eslint": "^7.14.0",
     "eslint-plugin-simple-import-sort": "^6.0.1",
     "esm": "^3.2.25",
+    "hardhat": "^2.0.4",
     "mocha": "^8.2.1",
     "prettier": "^2.2.1",
     "prettier-plugin-pkg": "^0.8.0",
