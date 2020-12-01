@@ -1,0 +1,25 @@
+{
+  "name": "wolves.finance",
+  "version": "1.0.0",
+  "description": "DeFi meets gamification",
+  "homepage": "https://github.com/peak3d/wolves.finance",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=12.0.0",
+    "npm": ">=6.1.0"
+  },
+  "keywords": [
+    "dapp",
+    "decentralized",
+    "defi",
+    "finance",
+    "gamification",
+    "lending",
+    "liquiditypooling",
+    "marketmaking",
+    "nonfungible",
+    "semifungible"
+  ],
+  "bundleDependencies": false,
+  "target": "web"
+}
