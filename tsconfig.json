@@ -1,0 +1,16 @@
+{
+  "exclude": ["node_modules", "web_modules"],
+  "compilerOptions": {
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "checkJs": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "removeComments": false,
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "typeRoots": ["node_modules/@types"]
+  }
+}
