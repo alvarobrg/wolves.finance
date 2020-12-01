@@ -15,6 +15,10 @@ Installs the Javascript dependencies of the project.
 Audits installed Javascript dependencies for vulnerabilities.\
 Use `yarn run audit` when running on CI infrastructure.
 
+### `yarn test`
+
+Runs the unit tests for the project.
+
 ### `yarn format`
 
 Applies automated formatting tools (prettier, eslint).
