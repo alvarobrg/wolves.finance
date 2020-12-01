@@ -21,10 +21,15 @@
     "semifungible"
   ],
   "scripts": {
-    "audit": "audit-ci --moderate --package-manager npm"
+    "audit": "audit-ci --moderate --package-manager npm",
+    "format": "prettier --write .",
+    "lint": "prettier --check ."
   },
   "devDependencies": {
-    "audit-ci": "^3.1.1"
+    "audit-ci": "^3.1.1",
+    "prettier": "^2.2.1",
+    "prettier-plugin-pkg": "^0.8.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.1"
   },
   "bundleDependencies": false,
   "target": "web"
