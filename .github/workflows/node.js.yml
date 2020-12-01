@@ -60,3 +60,6 @@ jobs:
       - name: npm install
         if: steps.restore-node.outputs.cache-hit != 'true'
         run: npm install
+
+      - name: npm run audit
+        run: npm run audit
