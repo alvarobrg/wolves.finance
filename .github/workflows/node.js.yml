@@ -27,7 +27,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-16.04
-            node-version: 12
+            node-version: 14
           - os: ubuntu-18.04
             node-version: 14
           - os: ubuntu-20.04
@@ -55,14 +55,14 @@ jobs:
         with:
           path: |
             node_modules
-          key: npm-install-${{ matrix.node-version }}-${{ hashFiles('package.json', 'package-lock.json') }}
+          key: npm-install-${{ matrix.node-version }}-${{ hashFiles('package.json', 'yarn.lock') }}
 
-      - name: npm install
+      - name: yarn install
         if: steps.restore-node.outputs.cache-hit != 'true'
-        run: npm install
+        run: yarn install
 
-      - name: npm run audit
-        run: npm run audit
+      - name: yarn run audit
+        run: yarn run audit
 
-      - name: npm run lint
-        run: npm run lint
+      - name: yarn lint
+        run: yarn lint
