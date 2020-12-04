@@ -26,11 +26,20 @@ class Presale extends React.Component<unknown, CSTATE> {
     event.preventDefault();
   }
 
+  handleOnChange(event: React.ChangeEvent<HTMLInputElement>): void {
+    //event.preventDefault();
+  }
+
   render(): JSX.Element {
     return (
       <form onSubmit={this.handleSubmit}>
         <label>ETH amount:</label>
-        <input type="text" value="0" name="eth_amount" />
+        <input
+          type="text"
+          value="0"
+          name="eth_amount"
+          onChange={this.handleOnChange}
+        />
         <input type="submit" value="Buy Token" />
       </form>
     );
