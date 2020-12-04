@@ -23,6 +23,10 @@ class Header extends React.Component<unknown, CSTATE> {
     emitter.on(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
   }
 
+  componentWillUnmount(): void {
+    emitter.off(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
+  }
+
   onConnectionChanged(params: ConnectResult): void {
     this.setState(params);
   }

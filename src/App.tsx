@@ -8,10 +8,10 @@
 
 import './App.css';
 
-//import Presale from './components/Presale'
 import React from 'react';
 
 import Header from './components/header/header';
+import Presale from './components/presale';
 import { StoreClasses } from './stores/store';
 
 const store = StoreClasses.store;
@@ -29,6 +29,7 @@ class App extends React.Component {
     return (
       <div className="App">
         <Header />
+        <Presale />
       </div>
     );
   }
