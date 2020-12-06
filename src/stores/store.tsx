@@ -11,7 +11,7 @@ import {
   ERC20_TOKEN_CONTRACT,
   ERROR,
   ETH_PRESALE,
-  POOL_HASH,
+  //POOL_HASH,
 } from './constants';
 
 const emitter = new Emitter.EventEmitter();
@@ -209,10 +209,10 @@ class Store {
   // Buy tokens for {amount} ETH
   doPresale(payloadContent: PayloadContent) {
     try {
-      const { amount } = payloadContent;
+      /*const { amount } = payloadContent;
       const investAmount = this.toWei(amount);
 
-      /*const tx = await asset.contract.functions[asset.invest](investAmount);
+      const tx = await asset.contract.functions[asset.invest](investAmount);
       emitter.emit(POOL_HASH, tx.hash);
 
       await tx.wait();

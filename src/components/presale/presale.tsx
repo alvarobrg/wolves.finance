@@ -5,11 +5,20 @@ import { ConnectResult, StoreClasses } from '../../stores/store';
 
 interface CSTATE {
   connected: boolean;
+  ethRaised: number;
 }
 
 const emitter = StoreClasses.emitter;
 
 class Presale extends React.Component<unknown, CSTATE> {
+  constructor(props: unknown) {
+    super(props);
+    this.state = { connected: false, ethRaised: 0 };
+
+    this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleOnChange = this.handleOnChange.bind(this);
+  }
+
   componentDidMount(): void {
     emitter.on(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
   }
@@ -41,6 +50,7 @@ class Presale extends React.Component<unknown, CSTATE> {
           onChange={this.handleOnChange}
         />
         <input type="submit" value="Buy Token" />
+        <label>ETH raised: {this.state.ethRaised.toFixed(2)}</label>
       </form>
     );
   }
