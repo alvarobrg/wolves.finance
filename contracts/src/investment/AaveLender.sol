@@ -1,5 +1,9 @@
 pragma solidity 0.6.5;
 
+import '../../interfaces/aave/AaveLP.sol';
+import '../../interfaces/aave/AaveLPAddressProvider.sol';
+import '../../interfaces/aave/AaveToken.sol';
+
 interface IERC20 {
   function totalSupply() external view returns (uint256);
 
@@ -22,43 +26,6 @@ interface IERC20 {
 
   event Transfer(address indexed from, address indexed to, uint256 value);
   event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-interface AaveLPAddressProvider {
-  function getLendingPool() external view returns (address);
-
-  function getLendingPoolCore() external view returns (address);
-}
-
-interface AaveLP {
-  function deposit(
-    address _reserve,
-    uint256 _amount,
-    uint16 _referralCode
-  ) external;
-
-  function getReserveData(address _reserve)
-    external
-    view
-    returns (
-      uint256 totalLiquidity,
-      uint256 availableLiquidity,
-      uint256 totalBorrowsStable,
-      uint256 totalBorrowsVariable,
-      uint256 liquidityRate,
-      uint256 variableBorrowRate,
-      uint256 stableBorrowRate,
-      uint256 averageStableBorrowRate,
-      uint256 utilizationRate,
-      uint256 liquidityIndex,
-      uint256 variableBorrowIndex,
-      address aTokenAddress,
-      uint40 lastUpdateTimestamp
-    );
-}
-
-interface AaveToken {
-  function redeem(uint256 _amount) external;
 }
 
 library SafeMath {

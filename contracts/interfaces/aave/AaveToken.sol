@@ -9,8 +9,8 @@
  * See the file LICENSES/README.md for more information.
  */
 
-pragma solidity ^0.7.4;
+pragma solidity >=0.6.0 <0.8.0;
 
 interface AaveToken {
-  function underlyingAssetAddress() external view returns (address);
+  function redeem(uint256 _amount) external;
 }

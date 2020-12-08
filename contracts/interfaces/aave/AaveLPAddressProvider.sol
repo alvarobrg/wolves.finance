@@ -9,12 +9,10 @@
  * See the file LICENSES/README.md for more information.
  */
 
-pragma solidity ^0.7.4;
+pragma solidity >=0.6.0 <0.8.0;
 
-interface LendingPoolAddressesProvider {
+interface AaveLPAddressProvider {
   function getLendingPool() external view returns (address);
 
   function getLendingPoolCore() external view returns (address);
-
-  function getPriceOracle() external view returns (address);
 }
