@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: Apache-2.0
-pragma solidity >=0.6.0 <0.8.0;
+pragma solidity >=0.7.0 <0.8.0;
 
 import '@openzeppelin/contracts/token/ERC20/ERC20Capped.sol';
 import '@openzeppelin/contracts/access/AccessControl.sol';
@@ -25,7 +25,7 @@ contract WolfToken is ERC20Capped, AccessControl {
   }
 
   // mint is only allowed by addresses with minter role
-  function mint(address account, uint256 amount) public returns (bool) {
+  function mint(address account, uint256 amount) external returns (bool) {
     require(hasRole(MINTER_ROLE, msg.sender));
     _mint(account, amount);
     return true;

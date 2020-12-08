@@ -4,6 +4,7 @@ pragma solidity >=0.6.0 <0.8.0;
 import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
+import './IController.sol';
 
 interface IStrategy {
   function getId() external pure returns (bytes32);
@@ -29,20 +30,6 @@ interface IStrategy {
   function getApr(address token) external view returns (uint256);
 
   function refresh(address token) external;
-}
-
-interface IController {
-  function onDeposit(uint256 amount) external;
-
-  function onWithdraw(uint256 amount) external;
-
-  function calculateTokensEarned(
-    uint256 amount,
-    uint256 share,
-    uint256 depositStartBlock
-  ) external view returns (uint256); //1e18
-
-  function lockEarnedTokens(uint256 tokenCount) external;
 }
 
 contract StableCoinFarm is ERC20, Ownable {
