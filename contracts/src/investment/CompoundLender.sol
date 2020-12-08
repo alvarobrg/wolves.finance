@@ -1,40 +1,8 @@
 pragma solidity 0.6.5;
 
-interface IERC20 {
-  function totalSupply() external view returns (uint256);
+import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
-  function balanceOf(address account) external view returns (uint256);
-
-  function transfer(address recipient, uint256 amount) external returns (bool);
-
-  function allowance(address owner, address spender)
-    external
-    view
-    returns (uint256);
-
-  function approve(address spender, uint256 amount) external returns (bool);
-
-  function transferFrom(
-    address sender,
-    address recipient,
-    uint256 amount
-  ) external returns (bool);
-
-  event Transfer(address indexed from, address indexed to, uint256 value);
-  event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-interface Compound {
-  function mint(uint256 mintAmount) external returns (uint256);
-
-  function redeem(uint256 redeemTokens) external returns (uint256);
-
-  function exchangeRateStored() external view returns (uint256);
-
-  function supplyRatePerBlock() external view returns (uint256);
-
-  function exchangeRateCurrent() external returns (uint256);
-}
+import '../../interfaces/compound/CTokenInterface.sol';
 
 library SafeMath {
   function sub(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -103,7 +71,10 @@ contract CompoundLender {
     require(cToken != address(0));
     // mint cToken
     uint256 poolTokens = IERC20(cToken).balanceOf(address(this));
-    require(Compound(cToken).mint(assetAmount) == 0, 'COMPOUND: mint failed');
+    require(
+      CTokenInterface(cToken).mint(assetAmount) == 0,
+      'COMPOUND: mint failed'
+    );
     return IERC20(cToken).balanceOf(address(this)).sub(poolTokens);
   }
 
@@ -116,7 +87,7 @@ contract CompoundLender {
     // redeem tokens to this contract
     uint256 assetTokens = IERC20(token).balanceOf(address(this));
     require(
-      Compound(cToken).redeem(poolAmount) == 0,
+      CTokenInterface(cToken).redeem(poolAmount) == 0,
       'COMPOUND: redeem failed'
     );
     return IERC20(token).balanceOf(address(this)).sub(assetTokens);
@@ -142,14 +113,14 @@ contract CompoundLender {
     return
       (
         IERC20(cToken).balanceOf(_owner).mul(
-          Compound(cToken).exchangeRateStored()
+          CTokenInterface(cToken).exchangeRateStored()
         )
       )
         .div(1e18);
   }
 
   function getApr(address token) external view returns (uint256) {
-    return Compound(_token2cToken(token)).supplyRatePerBlock() * 2102400;
+    return CTokenInterface(_token2cToken(token)).supplyRatePerBlock() * 2102400;
   }
 
   function getPoolToken(address token) external pure returns (address) {
@@ -157,7 +128,7 @@ contract CompoundLender {
   }
 
   function refresh(address token) external {
-    Compound(_token2cToken(token)).exchangeRateCurrent();
+    CTokenInterface(_token2cToken(token)).exchangeRateCurrent();
   }
 
   function _token2cToken(address asset) internal pure returns (address) {
