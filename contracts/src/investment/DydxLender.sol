@@ -1,6 +1,8 @@
 pragma solidity 0.6.5;
 pragma experimental ABIEncoderV2;
 
+import '../../interfaces/dydx/dYdX.sol';
+
 interface IERC20 {
   function totalSupply() external view returns (uint256);
 
@@ -23,77 +25,6 @@ interface IERC20 {
 
   event Transfer(address indexed from, address indexed to, uint256 value);
   event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-struct Val {
-  uint256 value;
-}
-
-struct Set {
-  uint128 borrow;
-  uint128 supply;
-}
-
-enum ActionType {
-  Deposit, // supply tokens
-  Withdraw // borrow tokens
-}
-
-enum AssetDenomination {
-  Wei // the amount is denominated in wei
-}
-
-enum AssetReference {
-  Delta // the amount is given as a delta from the current value
-}
-
-struct AssetAmount {
-  bool sign; // true if positive
-  AssetDenomination denomination;
-  AssetReference ref;
-  uint256 value;
-}
-
-struct ActionArgs {
-  ActionType actionType;
-  uint256 accountId;
-  AssetAmount amount;
-  uint256 primaryMarketId;
-  uint256 secondaryMarketId;
-  address otherAddress;
-  uint256 otherAccountId;
-  bytes data;
-}
-
-struct Info {
-  address owner; // The address that owns the account
-  uint256 number; // A nonce that allows a single address to control many accounts
-}
-
-struct Wei {
-  bool sign; // true if positive
-  uint256 value;
-}
-
-interface DyDx {
-  function getAccountWei(Info calldata account, uint256 marketId)
-    external
-    view
-    returns (Wei memory);
-
-  function operate(Info[] calldata, ActionArgs[] calldata) external;
-
-  function getEarningsRate() external view returns (Val memory);
-
-  function getMarketInterestRate(uint256 marketId)
-    external
-    view
-    returns (Val memory);
-
-  function getMarketTotalPar(uint256 marketId)
-    external
-    view
-    returns (Set memory);
 }
 
 library SafeMath {
@@ -171,7 +102,7 @@ contract DyDxLender {
     ActionArgs[] memory args = new ActionArgs[](1);
     args[0] = act;
 
-    DyDx(dydx).operate(infos, args);
+    dYdX(dydx).operate(infos, args);
     return assetAmount;
   }
 
@@ -203,7 +134,7 @@ contract DyDxLender {
     ActionArgs[] memory args = new ActionArgs[](1);
     args[0] = act;
 
-    DyDx(dydx).operate(infos, args);
+    dYdX(dydx).operate(infos, args);
     return poolAmount;
   }
 
@@ -213,7 +144,7 @@ contract DyDxLender {
     returns (uint256)
   {
     Wei memory bal =
-      DyDx(dydx).getAccountWei(Info(_owner, 0), _token2dToken(token));
+      dYdX(dydx).getAccountWei(Info(_owner, 0), _token2dToken(token));
     return bal.value;
   }
 
@@ -224,18 +155,18 @@ contract DyDxLender {
     returns (uint256)
   {
     Wei memory bal =
-      DyDx(dydx).getAccountWei(Info(_owner, 0), _token2dToken(token));
+      dYdX(dydx).getAccountWei(Info(_owner, 0), _token2dToken(token));
     return bal.value;
   }
 
   function getApr(address token) external view returns (uint256) {
     uint256 dToken = _token2dToken(token);
-    uint256 rate = DyDx(dydx).getMarketInterestRate(dToken).value;
+    uint256 rate = dYdX(dydx).getMarketInterestRate(dToken).value;
     uint256 aprBorrow = rate * 31622400;
-    Set memory set = DyDx(dydx).getMarketTotalPar(dToken);
+    Set memory set = dYdX(dydx).getMarketTotalPar(dToken);
     uint256 usage = (set.borrow * 1e18) / set.supply;
     return
-      (((aprBorrow * usage) / 1e18) * DyDx(dydx).getEarningsRate().value) /
+      (((aprBorrow * usage) / 1e18) * dYdX(dydx).getEarningsRate().value) /
       1e18;
   }
 
