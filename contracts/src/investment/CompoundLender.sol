@@ -131,10 +131,6 @@ contract CompoundLender {
     return CTokenInterface(_token2cToken(token)).supplyRatePerBlock() * 2102400;
   }
 
-  function getPoolToken(address token) external pure returns (address) {
-    return _token2cToken(token);
-  }
-
   function refresh(address token) external {
     CTokenInterface(_token2cToken(token)).exchangeRateCurrent();
   }
