@@ -8,34 +8,10 @@
 
 pragma solidity 0.6.5;
 
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../../interfaces/compound/CTokenInterface.sol';
-
-library SafeMath {
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a, 'SafeMath: Sub failed');
-    uint256 c = a - b;
-    return c;
-  }
-
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b > 0, 'SafeMath: div failed');
-    uint256 c = a / b;
-    return c;
-  }
-
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a == 0) {
-      return 0;
-    }
-
-    uint256 c = a * b;
-    require(c / a == b, 'SafeMath: multiplication overflow');
-
-    return c;
-  }
-}
 
 contract CompoundLender {
   using SafeMath for uint256;
