@@ -11,15 +11,10 @@ pragma solidity 0.6.5;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-interface IFarm {
-  function name() external view returns (string memory);
+import './interfaces/IController.sol';
+import './interfaces/IFarm.sol';
 
-  function requestMarketingFee() external;
-
-  function rebalance() external;
-}
-
-contract Controller is Ownable {
+contract Controller is IController, Ownable {
   using SafeMath for uint256;
 
   uint256 constant oneDayInBlocksMillion = 6500e6;
@@ -33,16 +28,16 @@ contract Controller is Ownable {
   Farm[] farms;
 
   // TODO: handle preconditions (%tokens restriction)
-  function onDeposit(uint256 amount) external {}
+  function onDeposit(uint256 amount) external override {}
 
   // TODO: resolve withdraw actions
-  function onWithdraw(uint256 amount) external {}
+  function onWithdraw(uint256 amount) external override {}
 
   function calculateTokensEarned(
     uint256 amount,
     uint256, /*share*/
     uint256 depositStartBlock
-  ) external view returns (uint256) {
+  ) external view override returns (uint256) {
     require(_findFarm(msg.sender) < farms.length, 'Farm not registered');
     uint256 blocksPassed = block.number.sub(depositStartBlock);
     return
@@ -51,7 +46,7 @@ contract Controller is Ownable {
       );
   }
 
-  function lockEarnedTokens(uint256 tokenCount) external {
+  function lockEarnedTokens(uint256 tokenCount) external override {
     uint256 farmId = _findFarm(msg.sender);
     require(farmId < farms.length, 'Farm not registered');
     Farm storage farm = farms[farmId];
@@ -59,11 +54,11 @@ contract Controller is Ownable {
   }
 
   function registerFarm(address farm) external onlyOwner {
-    bytes32 farmName = keccak256(abi.encodePacked(IFarm(farm).name()));
+    bytes32 farmName = keccak256(abi.encodePacked(IFarm(farm).farmName()));
     for (uint256 i = 0; i < farms.length; i++) {
       if (farms[i].farm == farm) return;
       if (
-        keccak256(abi.encodePacked(IFarm(farms[i].farm).name())) == farmName
+        keccak256(abi.encodePacked(IFarm(farms[i].farm).farmName())) == farmName
       ) {
         lockedToken -= farms[i].lockedToken;
         farms[i].farm = farm;

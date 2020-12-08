@@ -15,7 +15,9 @@ import '../../interfaces/aave/AaveLP.sol';
 import '../../interfaces/aave/AaveLPAddressProvider.sol';
 import '../../interfaces/aave/AaveToken.sol';
 
-contract AaveLender {
+import './interfaces/IStrategy.sol';
+
+contract AaveLender is IStrategy {
   using SafeMath for uint256;
   /*//mainnnet
   address constant lendingPoolAddressProvider = 0x24a42fD28C976A61Df5D00D0599C34c4f90748c8;
@@ -30,11 +32,11 @@ contract AaveLender {
   address constant dai = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
   address constant usdt = 0x13512979ADE267AB5100878E2e0f485B568328a4;
 
-  function getId() external pure returns (bytes32) {
+  function getId() external pure override returns (bytes32) {
     return keccak256(abi.encodePacked('AaveLender'));
   }
 
-  function approve(address token) external {
+  function approve(address token) external override {
     IERC20(token).approve(
       AaveLPAddressProvider(lendingPoolAddressProvider).getLendingPoolCore(),
       uint256(-1)
@@ -43,6 +45,7 @@ contract AaveLender {
 
   function invest(address token, uint256 assetAmount)
     external
+    override
     returns (uint256)
   {
     address lendingPool =
@@ -55,6 +58,7 @@ contract AaveLender {
 
   function redeem(address token, uint256 poolAmount)
     external
+    override
     returns (uint256)
   {
     address aToken = _getPoolToken(token);
@@ -67,6 +71,7 @@ contract AaveLender {
   function balanceOf(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     return IERC20(_getPoolToken(token)).balanceOf(_owner);
@@ -76,19 +81,20 @@ contract AaveLender {
   function getAssetAmount(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     return IERC20(_getPoolToken(token)).balanceOf(_owner);
   }
 
-  function getApr(address token) external view returns (uint256) {
+  function getApr(address token) external view override returns (uint256) {
     (, , , , uint256 liquidityRate, , , , , , , , ) =
       AaveLP(AaveLPAddressProvider(lendingPoolAddressProvider).getLendingPool())
         .getReserveData(token);
     return liquidityRate.div(1e9);
   }
 
-  function refresh(address token) external {}
+  function refresh(address token) external override {}
 
   function _getPoolToken(address token) private view returns (address) {
     (, , , , , , , , , , , address aToken, ) =

@@ -13,7 +13,9 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../../interfaces/fulcrum/Fulcrum.sol';
 
-contract FulcrumLender {
+import './interfaces/IStrategy.sol';
+
+contract FulcrumLender is IStrategy {
   using SafeMath for uint256;
   /*//mainnnet
   address constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -31,16 +33,17 @@ contract FulcrumLender {
   address constant usdt = address(0);
   address constant iusdt = address(0);
 
-  function getId() external pure returns (bytes32) {
+  function getId() external pure override returns (bytes32) {
     return keccak256(abi.encodePacked('FulcrumLender'));
   }
 
-  function approve(address token) external {
+  function approve(address token) external override {
     IERC20(token).approve(_token2iToken(token), uint256(-1));
   }
 
   function invest(address token, uint256 assetAmount)
     external
+    override
     returns (uint256)
   {
     // mint iToken
@@ -52,6 +55,7 @@ contract FulcrumLender {
 
   function redeem(address token, uint256 poolAmount)
     external
+    override
     returns (uint256)
   {
     // redeem tokens to this contract
@@ -64,6 +68,7 @@ contract FulcrumLender {
   function balanceOf(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     return IERC20(_token2iToken(token)).balanceOf(_owner);
@@ -73,16 +78,17 @@ contract FulcrumLender {
   function getAssetAmount(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     return Fulcrum(_token2iToken(token)).assetBalanceOf(_owner);
   }
 
-  function getApr(address token) external view returns (uint256) {
+  function getApr(address token) external view override returns (uint256) {
     return Fulcrum(_token2iToken(token)).supplyInterestRate().div(100);
   }
 
-  function refresh(address token) external {}
+  function refresh(address token) external override {}
 
   function _token2iToken(address asset) internal pure returns (address) {
     if (asset == usdc) return iusdc;

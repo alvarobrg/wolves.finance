@@ -11,7 +11,8 @@ pragma solidity >=0.6.0 <0.8.0;
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
-import './IController.sol';
+
+import './interfaces/IController.sol';
 
 // This class handles staking of ERC20 compatible token.
 // Note, that implementation wise only token

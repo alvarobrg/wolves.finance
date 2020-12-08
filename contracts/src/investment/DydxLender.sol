@@ -14,7 +14,9 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../../interfaces/dydx/dYdX.sol';
 
-contract DyDxLender {
+import './interfaces/IStrategy.sol';
+
+contract DyDxLender is IStrategy {
   using SafeMath for uint256;
   /*//mainnnet
   address constant dydx = 0x1E0447b19BB6EcFdAe1e4AE1694b0C3659614e4e;
@@ -28,16 +30,17 @@ contract DyDxLender {
   address constant dai = 0xFf795577d9AC8bD7D90Ee22b6C1703490b6512FD;
   address constant sai = 0xC4375B7De8af5a38a93548eb8453a498222C4fF2;
 
-  function getId() external pure returns (bytes32) {
+  function getId() external pure override returns (bytes32) {
     return keccak256(abi.encodePacked('DyDxLender'));
   }
 
-  function approve(address token) external {
+  function approve(address token) external override {
     IERC20(token).approve(dydx, uint256(-1));
   }
 
   function invest(address token, uint256 assetAmount)
     external
+    override
     returns (uint256)
   {
     uint256 dToken = _token2dToken(token);
@@ -70,6 +73,7 @@ contract DyDxLender {
 
   function redeem(address token, uint256 poolAmount)
     external
+    override
     returns (uint256)
   {
     uint256 dToken = _token2dToken(token);
@@ -103,6 +107,7 @@ contract DyDxLender {
   function balanceOf(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     Wei memory bal =
@@ -114,6 +119,7 @@ contract DyDxLender {
   function getAssetAmount(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     Wei memory bal =
@@ -121,7 +127,7 @@ contract DyDxLender {
     return bal.value;
   }
 
-  function getApr(address token) external view returns (uint256) {
+  function getApr(address token) external view override returns (uint256) {
     uint256 dToken = _token2dToken(token);
     uint256 rate = dYdX(dydx).getMarketInterestRate(dToken).value;
     uint256 aprBorrow = rate * 31622400;
@@ -132,7 +138,7 @@ contract DyDxLender {
       1e18;
   }
 
-  function refresh(address token) external {}
+  function refresh(address token) external override {}
 
   function _token2dToken(address asset) internal pure returns (uint256) {
     if (asset == sai) return 1;
