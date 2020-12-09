@@ -243,7 +243,10 @@ contract Crowdsale is Context, ReentrancyGuard {
     );
     require(weiAmount != 0, 'Crowdsale: weiAmount is 0');
     require(weiRaised().add(weiAmount) <= _cap, 'Crowdsale: cap exceeded');
-    this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+
+    // silence state mutability warning without generating bytecode - see
+    // https://github.com/ethereum/solidity/issues/2691
+    this;
   }
 
   /**
