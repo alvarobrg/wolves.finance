@@ -12,6 +12,6 @@ import App from './App';
 
 test('renders title', () => {
   render(<App />);
-  const titleElement = screen.getByText('THE TEAM');
+  const titleElement = screen.getByText('THE WOLVES & THE BOIS');
   expect(titleElement).toBeInTheDocument();
 });
