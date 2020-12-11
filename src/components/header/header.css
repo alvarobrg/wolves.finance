@@ -8,7 +8,7 @@
 
 .bg-wolf {
   background-color: #162739 !important;
-  padding-top: 16px;
+  padding: 20px 8px 8px 8px;
 }
 
 @font-face {
@@ -43,7 +43,7 @@
 .social_menu {
   position: absolute;
   top: 4px;
-  right: 0px;
+  right: 6px;
 }
 
 .social_menu_btn {
