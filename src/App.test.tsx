@@ -12,6 +12,6 @@ import App from './App';
 
 test('renders title', () => {
   render(<App />);
-  const titleElement = screen.getByText('wolfpack.finance');
+  const titleElement = screen.getByText('THE TEAM');
   expect(titleElement).toBeInTheDocument();
 });
