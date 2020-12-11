@@ -1,63 +1,51 @@
-import React from 'react';
+import './header.css';
 
-import { CONNECTION_CHANGED } from '../../stores/constants';
-import { ConnectResult, StoreClasses } from '../../stores/store';
+import React, { Component, ReactNode } from 'react';
+import { Image, Nav, Navbar } from 'react-bootstrap';
 
-interface CSTATE {
-  address: string;
-  networkName: string;
-}
+import logo from '../../assets/logo_banner.png';
+import Social from './social';
 
-const store = StoreClasses.store;
-const emitter = StoreClasses.emitter;
-
-class Header extends React.Component<unknown, CSTATE> {
-  constructor(props: unknown) {
-    super(props);
-    this.state = { address: '', networkName: '' };
-
-    this.handleSubmit = this.handleSubmit.bind(this);
-  }
-
-  componentDidMount(): void {
-    emitter.on(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
-  }
-
-  componentWillUnmount(): void {
-    emitter.off(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
-  }
-
-  onConnectionChanged(params: ConnectResult): void {
-    this.setState(params);
-  }
-
-  handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
-    if (store.isConnected()) {
-      store.disconnect();
-    } else {
-      store.connect();
-    }
-    event.preventDefault();
-  }
-
-  render(): JSX.Element {
-    const { address, networkName } = this.state;
-    const shortAddress =
-      address !== ''
-        ? address.substring(0, 6) +
-          '...' +
-          address.substring(address.length - 4, address.length) +
-          '(' +
-          networkName +
-          ')'
-        : 'Connect';
-
+class Header extends Component {
+  render(): ReactNode {
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>wolfpack.finance</label>
-        <input type="submit" value={shortAddress} />
-      </form>
+      <Navbar bg="wolf" variant="dark" expand="lg">
+        <Social />
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mx-auto">
+            <Nav.Link onClick={() => this.scrollSection('home')}>
+              THE WOLVES & THE BOIS
+            </Nav.Link>
+            <Nav.Link onClick={() => this.scrollSection('inno')}>
+              THE INNOVATIONS OF THIS PROJECT
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
+        <Navbar.Brand className="navbar-brand mx-auto" href="#home">
+          <Image src={logo} className="logo" />
+        </Navbar.Brand>
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mx-auto">
+            <Nav.Link onClick={() => this.scrollSection('paper')}>
+              THE PAPER
+            </Nav.Link>
+            <Nav.Link onClick={() => this.scrollSection('plan')}>
+              THE PLAN
+            </Nav.Link>
+            <Nav.Link onClick={() => this.scrollSection('presale')}>
+              THE PRESALE
+            </Nav.Link>
+            <Nav.Link onClick={() => this.scrollSection('team')}>
+              THE TEAM
+            </Nav.Link>
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
     );
+  }
+  scrollSection(section: string): void {
+    section = '';
   }
 }
 

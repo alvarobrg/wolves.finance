@@ -7,29 +7,31 @@
  */
 
 import './App.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 import React from 'react';
 
 import Header from './components/header/header';
-import Presale from './components/presale';
-import { StoreClasses } from './stores/store';
 
-const store = StoreClasses.store;
+//import Presale from './components/presale';
+//import { StoreClasses } from './stores/store';
+
+//const store = StoreClasses.store;
 
 class App extends React.Component {
   componentDidMount(): void {
-    store.autoconnect();
+    //    store.autoconnect();
   }
 
   componentWillUnmount(): void {
-    store.disconnect();
+    //  store.disconnect();
   }
 
   render(): JSX.Element {
     return (
       <div className="App">
         <Header />
-        <Presale />
+        {/*<Presale />*/}
       </div>
     );
   }

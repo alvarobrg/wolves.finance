@@ -1,0 +1,43 @@
+.bg-wolf {
+  background-color: #162739 !important;
+  padding-top: 16px;
+}
+
+@font-face {
+  font-family: 'VincAlt';
+  src: url('../../assets/fonts/Sardonyx.ttf') format('truetype');
+}
+
+.navbar-collapse {
+  align-self: flex-end;
+  margin-bottom: 12px;
+}
+
+.navbar-nav {
+  font-family: VincAlt;
+  letter-spacing: 0.02em;
+}
+
+.navbar-nav a {
+  color: white !important;
+}
+
+.navbar-nav a:hover {
+  text-decoration: underline !important;
+}
+
+@media (max-width: 540px) {
+  .logo {
+    width: 260px;
+  }
+}
+
+.social_menu {
+  position: absolute;
+  top: 4px;
+  right: 0px;
+}
+
+.social_menu_btn {
+  padding-right: 6px;
+}
