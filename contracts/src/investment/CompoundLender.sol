@@ -8,36 +8,14 @@
 
 pragma solidity 0.6.5;
 
+import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import '../../interfaces/compound/CTokenInterface.sol';
 
-library SafeMath {
-  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b <= a, 'SafeMath: Sub failed');
-    uint256 c = a - b;
-    return c;
-  }
+import './interfaces/IStrategy.sol';
 
-  function div(uint256 a, uint256 b) internal pure returns (uint256) {
-    require(b > 0, 'SafeMath: div failed');
-    uint256 c = a / b;
-    return c;
-  }
-
-  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-    if (a == 0) {
-      return 0;
-    }
-
-    uint256 c = a * b;
-    require(c / a == b, 'SafeMath: multiplication overflow');
-
-    return c;
-  }
-}
-
-contract CompoundLender {
+contract CompoundLender is IStrategy {
   using SafeMath for uint256;
   /*//mainnnet
   address constant usdc = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
@@ -63,16 +41,17 @@ contract CompoundLender {
   address constant usdt = 0xD9BA894E0097f8cC2BBc9D24D308b98e36dc6D02;
   address constant cusdt = 0x2fB298BDbeF468638AD6653FF8376575ea41e768;
 
-  function getId() external pure returns (bytes32) {
+  function getId() external pure override returns (bytes32) {
     return keccak256(abi.encodePacked('CompoundLender'));
   }
 
-  function approve(address token) external {
+  function approve(address token) external override {
     IERC20(token).approve(_token2cToken(token), uint256(-1));
   }
 
   function invest(address token, uint256 assetAmount)
     external
+    override
     returns (uint256)
   {
     address cToken = _token2cToken(token);
@@ -88,6 +67,7 @@ contract CompoundLender {
 
   function redeem(address token, uint256 poolAmount)
     external
+    override
     returns (uint256)
   {
     address cToken = _token2cToken(token);
@@ -104,6 +84,7 @@ contract CompoundLender {
   function balanceOf(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     address cToken = _token2cToken(token);
@@ -115,6 +96,7 @@ contract CompoundLender {
   function getAssetAmount(address token, address _owner)
     external
     view
+    override
     returns (uint256)
   {
     address cToken = _token2cToken(token);
@@ -127,15 +109,11 @@ contract CompoundLender {
         .div(1e18);
   }
 
-  function getApr(address token) external view returns (uint256) {
+  function getApr(address token) external view override returns (uint256) {
     return CTokenInterface(_token2cToken(token)).supplyRatePerBlock() * 2102400;
   }
 
-  function getPoolToken(address token) external pure returns (address) {
-    return _token2cToken(token);
-  }
-
-  function refresh(address token) external {
+  function refresh(address token) external override {
     CTokenInterface(_token2cToken(token)).exchangeRateCurrent();
   }
 

@@ -8,38 +8,17 @@
 
 pragma solidity >=0.6.0 <0.8.0;
 
-import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/math/SafeMath.sol';
+import '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
-import './IController.sol';
+import '@openzeppelin/contracts/utils/Address.sol';
 
-interface IStrategy {
-  function getId() external pure returns (bytes32);
+import './interfaces/IController.sol';
+import './interfaces/IFarm.sol';
+import './interfaces/IStrategy.sol';
 
-  function approve(address token) external;
-
-  function invest(address token, uint256 assetAmount)
-    external
-    returns (uint256);
-
-  function redeem(address token, uint256 poolAmount) external returns (uint256);
-
-  function balanceOf(address token, address _owner)
-    external
-    view
-    returns (uint256);
-
-  function getAssetAmount(address token, address _owner)
-    external
-    view
-    returns (uint256);
-
-  function getApr(address token) external view returns (uint256);
-
-  function refresh(address token) external;
-}
-
-contract StableCoinFarm is ERC20, Ownable {
+contract StableCoinFarm is IFarm, ERC20, Ownable {
   using SafeERC20 for IERC20;
   using Address for address;
   using SafeMath for uint256;
@@ -80,6 +59,10 @@ contract StableCoinFarm is ERC20, Ownable {
   fallback() external payable {}
 
   receive() external payable {}
+
+  function farmName() external view override returns (string memory) {
+    return name();
+  }
 
   function withdrawAll() external onlyOwner {
     // ASSETS
@@ -266,7 +249,7 @@ contract StableCoinFarm is ERC20, Ownable {
     }
   }
 
-  function requestMarketingFee() external {
+  function requestMarketingFee() external override {
     require(msg.sender == controllerAddress, 'controller only');
     uint256 fee =
       getRequestableMarketingFee().sub(
@@ -287,7 +270,7 @@ contract StableCoinFarm is ERC20, Ownable {
     drainedMarketingFee.add(_redeem(poolAmount));
   }
 
-  function rebalance() external {
+  function rebalance() external override {
     require(msg.sender == controllerAddress, 'controller only');
     uint256 maxApr = 0;
     address maxAprStrategy;
