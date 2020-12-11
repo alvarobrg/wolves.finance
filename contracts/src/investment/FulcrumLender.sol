@@ -8,6 +8,8 @@
 
 pragma solidity 0.6.5;
 
+import '../../interfaces/fulcrum/Fulcrum.sol';
+
 interface IERC20 {
   function totalSupply() external view returns (uint256);
 
@@ -30,24 +32,6 @@ interface IERC20 {
 
   event Transfer(address indexed from, address indexed to, uint256 value);
   event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-interface Fulcrum {
-  function mint(address receiver, uint256 amount)
-    external
-    payable
-    returns (uint256 mintAmount);
-
-  function burn(address receiver, uint256 burnAmount)
-    external
-    returns (uint256 loanAmountPaid);
-
-  function assetBalanceOf(address _owner)
-    external
-    view
-    returns (uint256 balance);
-
-  function supplyInterestRate() external view returns (uint256 rate);
 }
 
 library SafeMath {

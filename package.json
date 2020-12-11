@@ -23,11 +23,16 @@
   "scripts": {
     "audit": "audit-ci --moderate --package-manager yarn",
     "build": "react-scripts build",
+    "compile": "hardhat compile",
     "deploy": "gh-pages -b master -r https://github.com/peak3d/peak3d.github.io.git -d build",
     "format": "prettier --write . && eslint --fix .",
-    "lint": "prettier --check . && eslint .",
+    "lint": "yarn lint-chain && yarn lint-app",
+    "lint-app": "prettier --check . && eslint .",
+    "lint-chain": "solhint 'contracts/**/*.sol'",
     "start": "react-scripts start",
-    "test": "ts-mocha --recursive --extension ts --require esm && CI=true react-scripts test --passWithNoTests"
+    "test": "yarn test-chain && yarn test-app",
+    "test-app": "CI=true react-scripts test --passWithNoTests",
+    "test-chain": "ts-mocha --recursive --extension ts --require esm"
   },
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
@@ -48,7 +53,6 @@
   },
   "devDependencies": {
     "@openzeppelin/contracts": "^3.3.0",
-    "@openzeppelin/contracts-ethereum-package": "^3.0.0",
     "@types/async": "^3.2.5",
     "@types/chai": "^4.2.14",
     "@types/flux": "^3.1.9",
@@ -62,10 +66,13 @@
     "eslint": "^7.14.0",
     "eslint-plugin-simple-import-sort": "^6.0.1",
     "esm": "^3.2.25",
+    "hardhat": "^2.0.4",
     "mocha": "^8.2.1",
     "prettier": "^2.2.1",
     "prettier-plugin-pkg": "^0.8.0",
     "prettier-plugin-solidity": "^1.0.0-beta.1",
+    "solhint": "^3.3.2",
+    "solhint-plugin-prettier": "^0.0.5",
     "ts-mocha": "^8.0.0",
     "ts-node": "^9.0.0",
     "typescript": "^4.1.2"
