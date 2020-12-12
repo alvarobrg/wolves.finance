@@ -10,11 +10,19 @@ import './howto.css';
 
 import React, { Component, ReactNode } from 'react';
 
-import howto from '../../assets/howto.jpg';
+import howto from '../../assets/howto.png';
+import howto_mobile from '../../assets/howto_mobile.png';
 
 class HowTo extends Component {
   render(): ReactNode {
-    return <img alt="" className="howto-img" src={howto} />;
+    return (
+      <div className="howto-container">
+        <picture>
+          <source media="(max-width: 800px)" srcSet={howto_mobile} />
+          <img alt="" src={howto} className="howto-img" />
+        </picture>
+      </div>
+    );
   }
 }
 

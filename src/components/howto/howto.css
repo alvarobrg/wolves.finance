@@ -6,6 +6,10 @@
  * See the file LICENSES/README.md for more information.
  */
 
+.howto-container {
+  background-color: rgb(24, 46, 70);
+}
 .howto-img {
-  width: 100%;
+  margin-top: -30px;
+  max-width: 100%;
 }
