@@ -2,3 +2,8 @@
   font-family: 'VincAlt';
   src: url('../../assets/fonts/Sardonyx.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'NewsCycle-Regular';
+  src: url('../../assets/fonts/NewsCycle-Regular.ttf') format('truetype');
+}

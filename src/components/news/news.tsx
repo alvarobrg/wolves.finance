@@ -14,7 +14,7 @@ import { Carousel } from 'react-bootstrap';
 class News extends Component {
   render(): ReactNode {
     return (
-      <div className="news">
+      <div className="news-main">
         <span className="ticker-text">PRE-SALE COUNTDOWN IS ON</span>
         <div className="time-ticker" />
         <Carousel interval={null}>

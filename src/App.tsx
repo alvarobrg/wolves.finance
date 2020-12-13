@@ -13,6 +13,7 @@ import React from 'react';
 
 import Header from './components/header/header';
 import HowTo from './components/howto/howto';
+import Info from './components/info/info';
 import News from './components/news/news';
 
 //import Presale from './components/presale';
@@ -35,6 +36,7 @@ class App extends React.Component {
         <Header />
         <News />
         <HowTo />
+        <Info />
         {/*<Presale />*/}
       </div>
     );
