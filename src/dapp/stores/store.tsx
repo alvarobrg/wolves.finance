@@ -94,7 +94,7 @@ class Store {
   connect = async () => {
     try {
       if (this.ethersProvider !== null) {
-        this.disconnect();
+        this.disconnect(false);
       }
       const web3Provider = await this.web3Modal.connect();
       await this.subscribeProvider(web3Provider);
@@ -112,7 +112,7 @@ class Store {
       this._emitNetworkChange();
     } catch (e) {
       console.log(e);
-      await this.disconnect();
+      await this.disconnect(true);
     }
   };
 
@@ -128,11 +128,11 @@ class Store {
     }
 
     provider.on('close', () => {
-      this.disconnect();
+      this.disconnect(true);
     });
 
     provider.on('disconnect', () => {
-      this.disconnect();
+      this.disconnect(true);
     });
 
     provider.on('accountsChanged', async (accounts: string[]) => {
@@ -160,15 +160,17 @@ class Store {
     });
   };
 
-  disconnect = async () => {
+  disconnect = async (clearCache: boolean) => {
     if (this.ethersProvider) {
       localStorage.removeItem('walletconnect');
       this.ethersProvider.removeAllListeners();
       this.ethersProvider = null;
     }
-    this.web3Modal.clearCachedProvider();
     this.address = '';
-    this._emitNetworkChange();
+    if (clearCache) {
+      this.web3Modal.clearCachedProvider();
+      this._emitNetworkChange();
+    }
   };
 
   isConnected = () => {

@@ -44,10 +44,11 @@
   background-color: rgb(3, 32, 66);
   color: rgb(203, 138, 108);
   height: 40px;
-  width: 180px;
+  width: 200px;
 }
 
 .dp-pre-form {
+  margin-top: 10px;
   width: 100%;
 }
 

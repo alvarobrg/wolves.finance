@@ -35,7 +35,7 @@ class Header extends Component<unknown, CSTATE> {
 
   componentWillUnmount(): void {
     this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
-    this.store.disconnect();
+    this.store.disconnect(true);
   }
 
   onConnectionChanged(params: ConnectResult): void {
@@ -44,7 +44,7 @@ class Header extends Component<unknown, CSTATE> {
 
   handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     if (this.store.isConnected()) {
-      this.store.disconnect();
+      this.store.disconnect(true);
     } else {
       this.store.connect();
     }
