@@ -6,9 +6,6 @@
  * See the file LICENSES/README.md for more information.
  */
 
-/* eslint @typescript-eslint/ban-ts-comment: "off" */
-// @ts-ignore
-
 /**
  * You need to export an object to set up your config. Go to
  * https://hardhat.org/config/ to learn more.
