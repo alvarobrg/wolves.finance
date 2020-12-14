@@ -15,21 +15,9 @@ import Header from './components/header/header';
 import HowTo from './components/howto/howto';
 import Info from './components/info/info';
 import News from './components/news/news';
-
-//import Presale from './components/presale';
-//import { StoreClasses } from './stores/store';
-
-//const store = StoreClasses.store;
+import Presale from './components/presale/presale';
 
 class App extends React.Component {
-  componentDidMount(): void {
-    //    store.autoconnect();
-  }
-
-  componentWillUnmount(): void {
-    //  store.disconnect();
-  }
-
   render(): JSX.Element {
     return (
       <div className="App">
@@ -37,7 +25,7 @@ class App extends React.Component {
         <News />
         <HowTo />
         <Info />
-        {/*<Presale />*/}
+        <Presale />
       </div>
     );
   }

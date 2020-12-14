@@ -7,3 +7,8 @@
   font-family: 'NewsCycle-Regular';
   src: url('../../assets/fonts/NewsCycle-Regular.ttf') format('truetype');
 }
+
+@font-face {
+  font-family: 'NewsCycle-Bold';
+  src: url('../../assets/fonts/NewsCycle-Bold.ttf') format('truetype');
+}

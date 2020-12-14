@@ -6,7 +6,7 @@
  * See the file LICENSES/README.md for more information.
  */
 
-import React from 'react';
+import React, { Component, ReactNode } from 'react';
 
 import { CONNECTION_CHANGED } from '../../stores/constants';
 import { ConnectResult, StoreClasses } from '../../stores/store';
@@ -16,23 +16,26 @@ interface CSTATE {
   networkName: string;
 }
 
-const store = StoreClasses.store;
-const emitter = StoreClasses.emitter;
+class Header extends Component<unknown, CSTATE> {
+  store = StoreClasses.store;
+  emitter = StoreClasses.emitter;
 
-class Header extends React.Component<unknown, CSTATE> {
   constructor(props: unknown) {
     super(props);
     this.state = { address: '', networkName: '' };
 
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.onConnectionChanged = this.onConnectionChanged.bind(this);
   }
 
   componentDidMount(): void {
-    emitter.on(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
+    this.store.autoconnect();
+    this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
   }
 
   componentWillUnmount(): void {
-    emitter.off(CONNECTION_CHANGED, this.onConnectionChanged.bind(this));
+    this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
+    this.store.disconnect();
   }
 
   onConnectionChanged(params: ConnectResult): void {
@@ -40,30 +43,31 @@ class Header extends React.Component<unknown, CSTATE> {
   }
 
   handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
-    if (store.isConnected()) {
-      store.disconnect();
+    if (this.store.isConnected()) {
+      this.store.disconnect();
     } else {
-      store.connect();
+      this.store.connect();
     }
     event.preventDefault();
   }
 
-  render(): JSX.Element {
+  _shortAddress(): string {
     const { address, networkName } = this.state;
-    const shortAddress =
-      address !== ''
-        ? address.substring(0, 6) +
+    return address !== ''
+      ? address.substring(0, 6) +
           '...' +
           address.substring(address.length - 4, address.length) +
           '(' +
           networkName +
           ')'
-        : 'Connect';
+      : 'CONNECT WALLET';
+  }
 
+  render(): ReactNode {
+    const shortAddress = this._shortAddress();
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>wolfpack.finance</label>
-        <input type="submit" value={shortAddress} />
+      <form className="dp-conn-form" onSubmit={this.handleSubmit}>
+        <input className="dp-conn-btn" type="submit" value={shortAddress} />
       </form>
     );
   }

@@ -9,7 +9,7 @@
 @import '../../assets/fonts/fonts.css';
 
 .info-main {
-  background-image: url(../../assets/info.jpg);
+  background-image: url(../../assets/banner_info.jpg);
   background-position: center;
   background-size: cover;
   padding-left: 5%;
@@ -55,13 +55,11 @@
 }
 
 .info-text {
-  margin-top: 10px;
+  max-width: 900px;
+  margin: 20px auto 20px auto;
   font-family: NewsCycle-Regular;
-  font-size: 16px;
-  line-height: 18px;
+  font-size: 18px;
+  line-height: 20px;
   color: white;
-}
-
-.info-footer {
-  width: 100%;
+  align-self: center;
 }
