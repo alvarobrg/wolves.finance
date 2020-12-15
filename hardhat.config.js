@@ -6,12 +6,6 @@
  * See the file LICENSES/README.md for more information.
  */
 
-/**
- * You need to export an object to set up your config. Go to
- * https://hardhat.org/config/ to learn more.
- *
- * @type import('hardhat/config').HardhatUserConfig
- */
 const config = {
   solidity: {
     compilers: [
