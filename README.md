@@ -15,6 +15,10 @@ Installs the Javascript dependencies of the project.
 Audits installed Javascript dependencies for vulnerabilities.\
 Use `yarn run audit` when running on CI infrastructure.
 
+### `yarn compile`
+
+Compiles the smart contracts.
+
 ### `yarn start`
 
 Runs the app in the development mode.\

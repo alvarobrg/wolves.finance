@@ -6,6 +6,9 @@
  * See the file LICENSES/README.md for more information.
  */
 
+// Inject Hardhat plugins
+require('hardhat-abi-exporter');
+
 const config = {
   solidity: {
     compilers: [
@@ -55,6 +58,13 @@ const config = {
     tests: './test',
     cache: './cache',
     artifacts: './artifacts',
+  },
+  abiExporter: {
+    // Path to ABI export directory (relative to Hardhat root)
+    path: './abi',
+
+    // Whether to delete old files in path
+    clear: true,
   },
 };
 
