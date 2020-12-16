@@ -200,9 +200,40 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @dev Checks whether the period in which the crowdsale is open has already elapsed.
    * @return Whether crowdsale period has elapsed
    */
-  function hasClosed() public view returns (bool) {
+  function hasClosed() external view returns (bool) {
     // solhint-disable-next-line not-rely-on-time
     return block.timestamp > _closingTime;
+  }
+
+  /**
+   * @dev Provide a collection of UI relevant values to reduce # of queries
+   * @return ethRaised : amount eth raised (wei)
+   *         timeOpen: time presale opens (unix timestamp seconds)
+   *         timeClose: time presale closes (unix timestamp seconds)
+   *         timeNow: current time (unix timestamp seconds)
+   *         userEthAmount: amount of ETH in users wallet (wei)
+   *         userTokenAmount: amount of token hold by user (token::decimals)
+   */
+  function getStates()
+    public
+    view
+    returns (
+      uint256 ethRaised,
+      uint256 timeOpen,
+      uint256 timeClose,
+      uint256 timeNow,
+      uint256 userEthAmount,
+      uint256 userTokenAmount
+    )
+  {
+    return (
+      _weiRaised,
+      _openingTime,
+      _closingTime,
+      block.timestamp,
+      msg.sender.balance,
+      _token.balanceOf(msg.sender)
+    );
   }
 
   /**
@@ -228,6 +259,11 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     _forwardFunds();
     _postValidatePurchase(beneficiary, weiAmount);
+  }
+
+  function testSetTimes() public {
+    _openingTime = block.timestamp + 300;
+    _closingTime = block.timestamp + 600;
   }
 
   /**

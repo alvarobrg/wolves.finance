@@ -9,11 +9,13 @@
 const addresses = {
   1: {
     //mainet
+    token: '0x0000000000000000000000000000000000000000',
+    presale: '0x0000000000000000000000000000000000000000',
   },
   4: {
     //rinkeby
-    token: 0xad4dd527b3199073fbcb1bf90d383a019df7fb45,
-    presale: 0x0000000000000000000000000000000000000000,
+    token: '0xD19f4298C9c66E0D91DCDD815547Ff0f9A3129a4',
+    presale: '0x6d8C3BD8A11a08B65d2Ef50A27faf307063BDDFB',
   },
 };
 

@@ -7,19 +7,20 @@
  */
 
 import WalletConnectProvider from '@walletconnect/web3-provider';
+import CrowdsaleAbi from 'abi/contracts/src/crowdsale/Crowdsale.sol/Crowdsale.json';
 import async from 'async';
 import { ethers } from 'ethers';
 import Emitter from 'events';
 import Dispatcher from 'flux';
 import Web3Modal from 'web3modal';
 
-//import config from '../config/config';
+import { addresses } from '../config/adresses';
 import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
-  ERROR,
-  ETH_PRESALE,
-  //POOL_HASH,
+  PRESALE_BUY,
+  PRESALE_STATE,
+  TX_HASH,
 } from './constants';
 
 const emitter = new Emitter.EventEmitter();
@@ -44,12 +45,29 @@ export type ConnectResult = {
   networkName: string;
 };
 
+export type PresaleResult = {
+  error: string | undefined;
+  state: {
+    ethRaised: number;
+    hasClosed: boolean;
+    isOpen: boolean;
+    timeToNextEvent: number;
+    ethUser: number;
+    tokenUser: number;
+  };
+};
+
+export type StatusResult = {
+  error: string | undefined;
+};
+
 type cbf = async.AsyncResultCallback<unknown, Error>;
 
 class Store {
   web3Modal: Web3Modal;
   ethersProvider: ethers.providers.Web3Provider | null = null;
   eventProvider: ethers.providers.InfuraWebSocketProvider | null = null;
+  presaleContract: ethers.Contract | null = null;
   networkName = 'mainnet';
   chainId = 1;
   address = '';
@@ -73,10 +91,13 @@ class Store {
       const _payload = payload as Payload;
       switch (_payload.type) {
         case ERC20_TOKEN_CONTRACT:
-          this.getTokenContractData(_payload.content);
+          this._getTokenContractData(_payload.content);
           break;
-        case ETH_PRESALE:
-          this.doPresale(_payload.content);
+        case PRESALE_BUY:
+          this._doPresale(_payload.content);
+          break;
+        case PRESALE_STATE:
+          this._getPresaleState(_payload.content);
           break;
         default: {
           return;
@@ -109,7 +130,7 @@ class Store {
         this.networkName,
         process.env.REACT_APP_INFURA_ID
       );
-      this._emitNetworkChange();
+      if (await this._setupContracts()) this._emitNetworkChange();
     } catch (e) {
       console.log(e);
       await this.disconnect(true);
@@ -177,7 +198,7 @@ class Store {
     return this.ethersProvider !== null;
   };
 
-  setupEvents() {
+  _setupEvents(): boolean {
     return true;
   }
 
@@ -191,11 +212,73 @@ class Store {
 
   /******************** Contracts *********************/
 
-  setupContracts = async () => {
+  _setupContracts(): boolean {
+    const signer = this.ethersProvider?.getSigner();
+    let chainAddresses: { token: string; presale: string };
+
+    switch (this.chainId) {
+      case 1:
+        chainAddresses = addresses[1];
+        break;
+      case 4:
+        chainAddresses = addresses[4];
+        break;
+      default:
+        return false;
+    }
+
+    this.presaleContract = new ethers.Contract(
+      chainAddresses.presale,
+      CrowdsaleAbi,
+      signer
+    );
+
+    /*await Crowdsale.connect()
+      chainAddresses.presale,
+      Crowdsale.prototype.interface,
+      signer
+    );*/
+
     return true;
+  }
+
+  _getPresaleState = async (payloadContent: PayloadContent) => {
+    try {
+      const states:
+        | {
+            ethRaised: ethers.BigNumber;
+            timeOpen: ethers.BigNumber;
+            timeClose: ethers.BigNumber;
+            timeNow: ethers.BigNumber;
+            userEthAmount: ethers.BigNumber;
+            userTokenAmount: ethers.BigNumber;
+          }
+        | undefined = await this.presaleContract?.getStates();
+
+      if (states) {
+        const hasClosed = states.timeNow.gt(states.timeClose);
+        const isOpen = !hasClosed && states.timeNow.gte(states.timeOpen);
+        emitter.emit(PRESALE_STATE, {
+          state: {
+            ethRaised: this.fromWei(states.ethRaised),
+            hasClosed: hasClosed,
+            isOpen: isOpen,
+            timeToNextEvent: hasClosed
+              ? 0
+              : isOpen
+              ? states.timeClose.sub(states.timeNow)
+              : states.timeOpen.sub(states.timeNow),
+            ethUser: this.fromWei(states.userEthAmount),
+            tokenUser: this.fromWei(states.userTokenAmount),
+          },
+        });
+      }
+    } catch (e) {
+      emitter.emit(PRESALE_STATE, { error: e.message });
+    }
   };
 
-  getTokenContractData(payloadContent: PayloadContent) {
+  _getTokenContractData = async (payloadContent: PayloadContent) => {
     async.parallel(
       [
         (callbackInner) => {
@@ -205,7 +288,7 @@ class Store {
       (err, data: unknown) => {
         if (err) {
           console.log(err);
-          emitter.emit(ERROR, { error: err.toString() });
+          emitter.emit(ERC20_TOKEN_CONTRACT, { error: err.toString() });
         } else {
           const asset: TokenContractResult = { tokenAmount: 0 };
           const numberArray = data as Array<number>;
@@ -214,36 +297,41 @@ class Store {
         }
       }
     );
-  }
+  };
 
   // Buy tokens for {amount} ETH
-  doPresale(payloadContent: PayloadContent) {
+  _doPresale = async (payloadContent: PayloadContent) => {
     try {
-      /*const { amount } = payloadContent;
-      const investAmount = this.toWei(amount);
+      const { amount } = payloadContent;
+      const investAmount = { value: this.toWei(amount) };
 
-      const tx = await asset.contract.functions[asset.invest](investAmount);
-      emitter.emit(POOL_HASH, tx.hash);
+      const tx:
+        | ethers.ContractTransaction
+        | undefined = await this.presaleContract?.buyTokens(
+        this.address,
+        investAmount
+      );
+      emitter.emit(TX_HASH, tx?.hash);
 
-      await tx.wait();
-      emitter.emit(POOL_INVEST, { id: asset.id, txHash: tx.hash });*/
+      await tx?.wait();
+      emitter.emit(PRESALE_BUY, {});
     } catch (e) {
-      emitter.emit(ERROR, e.message);
+      emitter.emit(PRESALE_BUY, { error: e.message });
     }
-  }
+  };
 
-  _getTokenAmount(payloadContent: PayloadContent, callback: cbf) {
+  _getTokenAmount = async (payloadContent: PayloadContent, callback: cbf) => {
     try {
-      const result = 0;
+      const result = ethers.BigNumber.from(0);
       //const result = await this.tokenContract.balanceOf(this.address);
       callback(null, this.fromWei(result));
     } catch (e) {
       console.log(e);
       return callback(e);
     }
-  }
+  };
 
-  fromWei(n: number, decimals = 18) {
+  fromWei(n: ethers.BigNumber, decimals = 18) {
     return parseFloat(ethers.utils.formatUnits(n, decimals));
   }
 

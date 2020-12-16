@@ -61,7 +61,7 @@ const config = {
   },
   abiExporter: {
     // Path to ABI export directory (relative to Hardhat root)
-    path: './abi',
+    path: './src/abi',
 
     // Whether to delete old files in path
     clear: true,

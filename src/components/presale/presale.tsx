@@ -15,7 +15,6 @@ import DappForm from '../../dapp/components/presale/presale';
 
 class PresaleForm extends DappForm {
   _renderStatus(ethRaised: number): ReactNode {
-    ethRaised = 50.0;
     return (
       <div className="progress-form">
         <div
