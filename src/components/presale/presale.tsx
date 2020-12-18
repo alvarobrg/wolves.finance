@@ -14,26 +14,32 @@ import DappHeader from '../../dapp/components/header/header';
 import DappForm from '../../dapp/components/presale/presale';
 
 class PresaleForm extends DappForm {
-  _renderStatus(ethRaised: number): ReactNode {
+  _renderStatus(): ReactNode {
     return (
-      <div className="progress-form">
-        <div
-          className="progress-label"
-          style={{ textAlign: 'right', paddingRight: '6px' }}
-        >
-          {ethRaised.toFixed(2)} ETH
+      <div>
+        <div className="presale-text presale-smaller">
+          Or send ETH to our pre-sale contract:
+          <br /> <b>{this._getPresaleContractAddress()}</b>
         </div>
-        <div className="progress-outer">
+        <div className="progress-form">
           <div
-            className="progress-inner"
-            style={{ width: (ethRaised * 100) / 150 + '%' }}
-          />
-        </div>
-        <div
-          className="progress-label"
-          style={{ textAlign: 'left', paddingLeft: '6px' }}
-        >
-          150 ETH
+            className="progress-label"
+            style={{ textAlign: 'right', paddingRight: '6px' }}
+          >
+            {this.state.ethRaised.toFixed(2)} ETH
+          </div>
+          <div className="progress-outer">
+            <div
+              className="progress-inner"
+              style={{ width: (this.state.ethRaised * 100) / 150 + '%' }}
+            />
+          </div>
+          <div
+            className="progress-label"
+            style={{ textAlign: 'left', paddingLeft: '6px' }}
+          >
+            150 ETH
+          </div>
         </div>
       </div>
     );
@@ -51,15 +57,17 @@ class Presale extends Component {
         </div>
         <DappHeader />
         <div className="presale-text-container presale-column">
-          <div className="presale-text">
-            3000 WOLF tokens on sale -<br />
+          <div className="presale-text presale-small">
+            3000 WOLF tokens on pre-sale -<br />
             <b>
-              Round 1 - Presale price = 150 ETH cap = $10
+              Round 1 - 1 ETH = 20 WOLF (~$30 / WOLF)
               <br />
-              Market price to be set at $15
+              Market price to be set at ~$40 / WOLF
+              <br />
+              Pre-sale cap per wallet: 3 ETH / 60 WOLF
             </b>
           </div>
-          <div className="presale-text">
+          <div className="presale-text presale-small">
             ETH from pre-sale is stored in our multi-sig wallet.
             <br />
             After pre-sale we set up the UNI-V2 LP pool.

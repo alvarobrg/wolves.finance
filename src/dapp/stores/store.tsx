@@ -41,6 +41,7 @@ export type TokenContractResult = {
 };
 
 export type ConnectResult = {
+  type: 'event' | 'prod';
   address: string;
   networkName: string;
 };
@@ -68,8 +69,9 @@ class Store {
   ethersProvider: ethers.providers.Web3Provider | null = null;
   eventProvider: ethers.providers.InfuraWebSocketProvider | null = null;
   presaleContract: ethers.Contract | null = null;
-  networkName = 'mainnet';
-  chainId = 1;
+  presaleContractRO: ethers.Contract | null = null;
+  networkName = 'rinkeby';
+  chainId = 0;
   address = '';
   assets = {};
 
@@ -126,10 +128,7 @@ class Store {
       const network = await this.ethersProvider.getNetwork();
       this.chainId = network.chainId;
       this.networkName = network.name;
-      this.eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
-        this.networkName,
-        process.env.REACT_APP_INFURA_ID
-      );
+      this._launchEventProvider();
       if (await this._setupContracts()) this._emitNetworkChange();
     } catch (e) {
       console.log(e);
@@ -137,7 +136,10 @@ class Store {
     }
   };
 
-  autoconnect = async () => {
+  autoconnect = async (defaultNetwork: string | null) => {
+    if (defaultNetwork) this.networkName = defaultNetwork;
+
+    this._launchEventProvider();
     if (this.web3Modal.cachedProvider) {
       await this.connect();
     }
@@ -173,8 +175,7 @@ class Store {
       if (this.ethersProvider !== null) {
         const network = await this.ethersProvider.getNetwork();
         if (network.chainId !== this.chainId) {
-          this.chainId = network.chainId;
-          this.networkName = network.name;
+          await this.connect();
           this._emitNetworkChange();
         }
       }
@@ -198,22 +199,53 @@ class Store {
     return this.ethersProvider !== null;
   };
 
+  isEventConnected = () => {
+    return this.eventProvider !== null;
+  };
+
   _setupEvents(): boolean {
     return true;
   }
 
   _emitNetworkChange() {
-    const result: ConnectResult = {
+    emitter.emit(CONNECTION_CHANGED, {
+      type: 'prod',
       address: this.address,
       networkName: this.networkName,
-    };
-    emitter.emit(CONNECTION_CHANGED, result);
+    } as ConnectResult);
   }
+
+  _launchEventProvider = async () => {
+    try {
+      if (
+        !this.eventProvider ||
+        (await this.eventProvider?.getNetwork()).chainId !== this.chainId
+      ) {
+        this.eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
+          this.networkName,
+          process.env.REACT_APP_INFURA_ID
+        );
+        if (!this.chainId)
+          this.chainId = (await this.eventProvider.getNetwork()).chainId;
+        this._setupContracts();
+        console.log('EventProvider launched on network: ', this.networkName);
+        emitter.emit(CONNECTION_CHANGED, {
+          type: 'event',
+          address: '',
+          networkName: this.networkName,
+        } as ConnectResult);
+      }
+    } catch (e) {
+      console.log(e);
+      if (this.eventProvider) {
+        this.eventProvider = null;
+      }
+    }
+  };
 
   /******************** Contracts *********************/
 
   _setupContracts(): boolean {
-    const signer = this.ethersProvider?.getSigner();
     let chainAddresses: { token: string; presale: string };
 
     switch (this.chainId) {
@@ -227,18 +259,21 @@ class Store {
         return false;
     }
 
-    this.presaleContract = new ethers.Contract(
-      chainAddresses.presale,
-      CrowdsaleAbi,
-      signer
-    );
+    if (this.eventProvider)
+      this.presaleContractRO = new ethers.Contract(
+        chainAddresses.presale,
+        CrowdsaleAbi,
+        this.eventProvider
+      );
 
-    /*await Crowdsale.connect()
-      chainAddresses.presale,
-      Crowdsale.prototype.interface,
-      signer
-    );*/
-
+    if (this.ethersProvider) {
+      const signer = this.ethersProvider?.getSigner();
+      this.presaleContract = new ethers.Contract(
+        chainAddresses.presale,
+        CrowdsaleAbi,
+        signer
+      );
+    }
     return true;
   }
 
@@ -253,7 +288,7 @@ class Store {
             userEthAmount: ethers.BigNumber;
             userTokenAmount: ethers.BigNumber;
           }
-        | undefined = await this.presaleContract?.getStates();
+        | undefined = await this.presaleContractRO?.getStates();
 
       if (states) {
         const hasClosed = states.timeNow.gt(states.timeClose);
@@ -277,6 +312,10 @@ class Store {
       emitter.emit(PRESALE_STATE, { error: e.message });
     }
   };
+
+  _getPresaleContractAddress() {
+    return this.presaleContractRO?.address;
+  }
 
   _getTokenContractData = async (payloadContent: PayloadContent) => {
     async.parallel(

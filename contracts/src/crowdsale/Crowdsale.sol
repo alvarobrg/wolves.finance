@@ -13,9 +13,12 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
+import 'contracts/interfaces/uniswap/IUniswapV2Router02.sol';
 
-interface IERC20Mintable is IERC20 {
+interface IERC20WolfMintable is IERC20 {
   function mint(address account, uint256 amount) external returns (bool);
+
+  function allowUniswap(bool allow) external;
 }
 
 /**
@@ -32,10 +35,10 @@ interface IERC20Mintable is IERC20 {
  */
 contract Crowdsale is Context, ReentrancyGuard {
   using SafeMath for uint256;
-  using SafeERC20 for IERC20Mintable;
+  using SafeERC20 for IERC20WolfMintable;
 
   // The token being sold
-  IERC20Mintable private _token;
+  IERC20WolfMintable private _token;
 
   // Address where funds are collected
   address payable private _wallet;
@@ -50,9 +53,16 @@ contract Crowdsale is Context, ReentrancyGuard {
   uint256 private _weiRaised;
 
   uint256 private _cap;
+  uint256 private _wallet_cap;
 
   uint256 private _openingTime;
   uint256 private _closingTime;
+
+  // locked tokens (in token * decimals)
+  mapping(address => uint256) private _lockedTokens;
+
+  // per wallet investment (in wei)
+  mapping(address => uint256) private _wallet_invest;
 
   /**
    * Event for token purchase logging
@@ -69,10 +79,37 @@ contract Crowdsale is Context, ReentrancyGuard {
   );
 
   /**
+   * Event for add liquidity logging
+   * @param amountToken how many token were added
+   * @param amountETH how many ETH were added
+   * @param liquidity how many pool tokens were created
+   */
+  event LiquidityAdded(
+    uint256 amountToken,
+    uint256 amountETH,
+    uint256 liquidity
+  );
+
+  /**
+   * Event for claim logging
+   * @param amountClaimed how many token were claimed
+   */
+  event Claimed(uint256 amountClaimed);
+
+  // Uniswap Router for providing liquidity
+  IUniswapV2Router02 private constant _uniV2Router =
+    IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+
+  // our target is providing 1125 WOLF + 75ETH initially
+  // into the UNISwapv2 liquidity pool
+  uint256 private constant _tokenForLp = 1125;
+  uint256 private constant _ethForLp = 75;
+
+  /**
    * @dev Reverts if not in crowdsale time range.
    */
   modifier onlyWhileOpen {
-    require(isOpen(), 'Crowdsale: not open');
+    require(isOpen(), 'not open');
     _;
   }
 
@@ -84,39 +121,36 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @param wallet Address where collected funds will be forwarded to
    * @param token Address of the token being sold
    * @param cap Max amount of wei to be contributed
+   * @param wallet_cap Max amount of wei to be contributed per wallet
    * @param openingTime Crowdsale opening time
    * @param closingTime Crowdsale closing time
    */
   constructor(
     uint256 rate,
     address payable wallet,
-    IERC20Mintable token,
+    IERC20WolfMintable token,
     uint256 cap,
+    uint256 wallet_cap,
     uint256 openingTime,
     uint256 closingTime
   ) {
-    require(rate > 0, 'Crowdsale: rate is 0');
-    require(wallet != address(0), 'Crowdsale: wallet is the zero address');
-    require(
-      address(token) != address(0),
-      'Crowdsale: token is the zero address'
-    );
-    require(cap > 0, 'CappedCrowdsale: cap is 0');
+    require(rate > 0, 'rate is 0');
+    require(wallet != address(0), 'wallet is the zero address');
+    require(address(token) != address(0), 'token is the zero address');
+    require(cap > 0, 'cap is 0');
     // solhint-disable-next-line not-rely-on-time
     require(
       openingTime >= block.timestamp,
-      'Crowdsale: opening time is before current time'
+      'opening time is before current time'
     );
     // solhint-disable-next-line max-line-length
-    require(
-      closingTime > openingTime,
-      'Crowdsale: opening time is not before closing time'
-    );
+    require(closingTime > openingTime, 'opening time > closing time');
 
     _rate = rate;
     _wallet = wallet;
     _token = token;
     _cap = cap;
+    _wallet_cap = wallet_cap;
     _openingTime = openingTime;
     _closingTime = closingTime;
   }
@@ -167,6 +201,13 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   /**
+   * @return the cap per wallet of the crowdsale.
+   */
+  function wallet_cap() public view returns (uint256) {
+    return _wallet_cap;
+  }
+
+  /**
    * @dev Checks whether the cap has been reached.
    * @return Whether the cap was reached
    */
@@ -200,7 +241,7 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @dev Checks whether the period in which the crowdsale is open has already elapsed.
    * @return Whether crowdsale period has elapsed
    */
-  function hasClosed() external view returns (bool) {
+  function hasClosed() public view returns (bool) {
     // solhint-disable-next-line not-rely-on-time
     return block.timestamp > _closingTime;
   }
@@ -212,9 +253,11 @@ contract Crowdsale is Context, ReentrancyGuard {
    *         timeClose: time presale closes (unix timestamp seconds)
    *         timeNow: current time (unix timestamp seconds)
    *         userEthAmount: amount of ETH in users wallet (wei)
+   *         userEthInvest: amount of ETH users has already spend (wei)
    *         userTokenAmount: amount of token hold by user (token::decimals)
+   *         userTokenLocked: amount of token users has locked (token::decimals)
    */
-  function getStates()
+  function getStates(address beneficiary)
     public
     view
     returns (
@@ -223,16 +266,26 @@ contract Crowdsale is Context, ReentrancyGuard {
       uint256 timeClose,
       uint256 timeNow,
       uint256 userEthAmount,
-      uint256 userTokenAmount
+      uint256 userEthInvested,
+      uint256 userTokenAmount,
+      uint256 userTokenLocked
     )
   {
+    uint256 ethAmount = beneficiary == address(0) ? 0 : beneficiary.balance;
+    uint256 tokenAmount =
+      beneficiary == address(0) ? 0 : _token.balanceOf(beneficiary);
+    uint256 ethInvest = _wallet_invest[beneficiary];
+    uint256 lockedToken = _lockedTokens[beneficiary];
+
     return (
       _weiRaised,
       _openingTime,
       _closingTime,
       block.timestamp,
-      msg.sender.balance,
-      _token.balanceOf(msg.sender)
+      ethAmount,
+      ethInvest,
+      tokenAmount,
+      lockedToken
     );
   }
 
@@ -251,6 +304,8 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     // update state
     _weiRaised = _weiRaised.add(weiAmount);
+    _wallet_invest[beneficiary] = _wallet_invest[beneficiary].add(weiAmount);
+    _lockedTokens[beneficiary] = _lockedTokens[beneficiary].add(tokens);
 
     _processPurchase(beneficiary, tokens);
     emit TokensPurchased(_msgSender(), beneficiary, weiAmount, tokens);
@@ -261,9 +316,54 @@ contract Crowdsale is Context, ReentrancyGuard {
     _postValidatePurchase(beneficiary, weiAmount);
   }
 
+  /**
+   * @dev claim tokens which were locked in buy step
+   */
+  function claimTokens() external {
+    require(_lockedTokens[msg.sender] > 0, '');
+    uint256 amount = _lockedTokens[msg.sender];
+    _lockedTokens[msg.sender] = 0;
+
+    _token.transfer(msg.sender, amount);
+    emit Claimed(amount);
+  }
+
+  /**
+   * @dev finalize presale / create liquidity pool
+   */
+  function finalizePresale() external {
+    require(hasClosed(), 'not closed');
+
+    uint256 ethBalance = address(this).balance;
+    require(ethBalance > 0, 'no eth balance');
+
+    // Calculate how many token we add into liquidity pool
+    uint256 tokenToLp = (ethBalance.mul(_tokenForLp)).div(_ethForLp);
+
+    // Mint token we spend
+    require(_token.mint(address(this), tokenToLp), 'minting failed');
+
+    // Add Liquidity, receiver of pool tokens is _wallet
+    _token.approve(address(_uniV2Router), tokenToLp);
+    (uint256 amountToken, uint256 amountETH, uint256 liquidity) =
+      _uniV2Router.addLiquidityETH(
+        address(_token),
+        tokenToLp,
+        tokenToLp,
+        ethBalance,
+        _wallet,
+        block.number + 60
+      );
+    emit LiquidityAdded(amountToken, amountETH, liquidity);
+
+    // finally open uniswapv2 LP pool on token contract
+    _token.allowUniswap(true);
+  }
+
   function testSetTimes() public {
     _openingTime = block.timestamp + 300;
     _closingTime = block.timestamp + 600;
+    _token.allowUniswap(false);
   }
 
   /**
@@ -280,12 +380,13 @@ contract Crowdsale is Context, ReentrancyGuard {
     view
     onlyWhileOpen
   {
+    require(beneficiary != address(0), 'beneficiary is the zero address');
+    require(weiAmount != 0, 'weiAmount is 0');
+    require(weiRaised().add(weiAmount) <= _cap, 'cap exceeded');
     require(
-      beneficiary != address(0),
-      'Crowdsale: beneficiary is the zero address'
+      _wallet_invest[beneficiary].add(weiAmount) <= _wallet_cap,
+      'wallet-cap exceeded'
     );
-    require(weiAmount != 0, 'Crowdsale: weiAmount is 0');
-    require(weiRaised().add(weiAmount) <= _cap, 'Crowdsale: cap exceeded');
 
     // silence state mutability warning without generating bytecode - see
     // https://github.com/ethereum/solidity/issues/2691
@@ -306,23 +407,15 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   /**
-   * @dev Overrides delivery by minting tokens upon purchase.
-   * @param beneficiary Token purchaser
-   * @param tokenAmount Number of tokens to be minted
-   */
-  function _deliverTokens(address beneficiary, uint256 tokenAmount) internal {
-    // Potentially dangerous assumption about the type of the token.
-    require(_token.mint(beneficiary, tokenAmount), 'Crowdsale: minting failed');
-  }
-
-  /**
    * @dev Executed when a purchase has been validated and is ready to be executed. Doesn't necessarily emit/send
    * tokens.
    * @param beneficiary Address receiving the tokens
    * @param tokenAmount Number of tokens to be purchased
    */
   function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
-    _deliverTokens(beneficiary, tokenAmount);
+    require(_token.mint(address(this), tokenAmount), 'minting failed');
+    // prevent unused var warning
+    beneficiary;
   }
 
   /**
@@ -350,6 +443,6 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @dev Determines how ETH is stored/forwarded on purchases.
    */
   function _forwardFunds() internal {
-    _wallet.transfer(msg.value);
+    _wallet.transfer(msg.value.div(2));
   }
 }

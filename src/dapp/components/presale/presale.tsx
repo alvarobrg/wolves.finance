@@ -6,7 +6,8 @@
  * See the file LICENSES/README.md for more information.
  */
 
-import React, { Component, ReactNode } from 'react';
+import React, { Component, createRef, ReactNode } from 'react';
+import { Overlay, Tooltip } from 'react-bootstrap';
 
 import {
   CONNECTION_CHANGED,
@@ -44,11 +45,18 @@ const INITIALSTATE: CSTATE = {
   tokenUser: 0,
 };
 
+const INITIALCONNSTATE = {
+  connected: false,
+  ethUser: 0,
+  tokenUser: 0,
+};
+
 class Presale extends Component<unknown, CSTATE> {
   emitter = StoreClasses.emitter;
   dispatcher = StoreClasses.dispatcher;
   static readonly defaultEthValue = '0 ETH';
-  inputRef: React.RefObject<HTMLInputElement> = React.createRef();
+  inputRef: React.RefObject<HTMLInputElement> = createRef();
+  buttonRef: HTMLInputElement | null = null;
   timeoutHandle: NodeJS.Timeout | undefined = undefined;
 
   constructor(props: unknown) {
@@ -63,12 +71,15 @@ class Presale extends Component<unknown, CSTATE> {
     this.onPresaleState = this.onPresaleState.bind(this);
     this.onPresaleBuy = this.onPresaleBuy.bind(this);
     this.onTimeout = this.onTimeout.bind(this);
+    this.onButtonRefChanged = this.onButtonRefChanged.bind(this);
   }
 
   componentDidMount(): void {
     this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
     this.emitter.on(PRESALE_STATE, this.onPresaleState);
     this.emitter.on(PRESALE_BUY, this.onPresaleBuy);
+    if (StoreClasses.store.isEventConnected())
+      this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
   }
 
   componentWillUnmount(): void {
@@ -78,11 +89,10 @@ class Presale extends Component<unknown, CSTATE> {
   }
 
   onConnectionChanged(params: ConnectResult): void {
-    if (params.address === '') this.setState({ ...INITIALSTATE });
-    else {
-      this.setState({ connected: true });
+    if (params.type === 'event')
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
-    }
+    else if (params.address === '') this.setState({ ...INITIALCONNSTATE });
+    else this.setState({ connected: true });
   }
 
   onPresaleState(params: PresaleResult): void {
@@ -143,7 +153,27 @@ class Presale extends Component<unknown, CSTATE> {
     return <div />;
   }
 
+  _getPresaleContractAddress(): string {
+    return StoreClasses.store._getPresaleContractAddress() || '';
+  }
+
+  _renderTooltip = (props: unknown): ReactNode => (
+    <Tooltip id="button-tooltip" {...props}>
+      Simple tooltip
+    </Tooltip>
+  );
+
+  onButtonRefChanged(ref: HTMLInputElement): void {
+    this.buttonRef = ref;
+    this.forceUpdate();
+  }
+
   render(): ReactNode {
+    const disabled =
+      !(this.state.isOpen && this.state.connected) ||
+      this.state.waiting ||
+      !this.state.inputValid;
+
     return (
       <form className="dp-pre-form" onSubmit={this.handleSubmit}>
         <input
@@ -160,21 +190,23 @@ class Presale extends Component<unknown, CSTATE> {
         <input
           className="dp-pre-btn"
           type="submit"
-          value={
-            this.state.hasClosed
-              ? 'CLOSED'
-              : !this.state.isOpen
-              ? 'NOT OPEN'
-              : this.state.waiting
-              ? '...'
-              : 'SEND'
-          }
-          disabled={
-            !(this.state.isOpen && this.state.connected) ||
-            this.state.waiting ||
-            !this.state.inputValid
-          }
+          value={disabled ? ' ' : 'SEND'}
+          disabled={disabled}
+          ref={this.onButtonRefChanged}
         />
+        <Overlay placement="top-start" target={this.buttonRef} show={disabled}>
+          {(props: unknown): ReactNode => (
+            <Tooltip id="button-tooltip" {...props}>
+              {!this.state.connected
+                ? 'Connect your wallet'
+                : !this.state.isOpen
+                ? 'Presale is not open'
+                : !this.state.inputValid
+                ? 'Enter amount > 0'
+                : 'Transaction pending'}
+            </Tooltip>
+          )}
+        </Overlay>
         {this._renderStatus(this.state.ethRaised)}
       </form>
     );

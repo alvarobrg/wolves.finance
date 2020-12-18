@@ -22,8 +22,11 @@
 }
 
 @media screen and (max-width: 400px) {
-  .presale-text {
+  .presale-small {
     font-size: 13px;
+  }
+  .presale-smaller {
+    font-size: 12px;
   }
 }
 
@@ -48,7 +51,7 @@
 }
 
 .dp-pre-form {
-  margin-top: 10px;
+  margin-top: 32px;
   width: 100%;
 }
 
@@ -60,6 +63,14 @@
   color: rgb(203, 138, 108);
   height: 40px;
   width: 15%;
+  min-width: 60px;
+}
+
+.dp-pre-btn:disabled {
+  background-image: url('../../assets/disable.ico');
+  background-repeat: no-repeat;
+  background-size: 28px 28px;
+  background-position: center;
 }
 
 .dp-pre-input {
@@ -77,9 +88,9 @@
 }
 
 .progress-form {
-  margin-top: 20px;
   width: 100%;
   display: flex;
+  margin-top: 20px;
 }
 
 .progress-outer {
@@ -99,4 +110,8 @@
   font-family: VincAlt;
   font-size: 24px;
   width: 24.5%;
+}
+
+.tooltip {
+  z-index: 1;
 }

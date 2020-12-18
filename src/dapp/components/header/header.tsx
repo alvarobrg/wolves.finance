@@ -29,7 +29,8 @@ class Header extends Component<unknown, CSTATE> {
   }
 
   componentDidMount(): void {
-    this.store.autoconnect();
+    const query = new URLSearchParams(window.location.search);
+    this.store.autoconnect(query.get('network'));
     this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
   }
 
@@ -39,7 +40,7 @@ class Header extends Component<unknown, CSTATE> {
   }
 
   onConnectionChanged(params: ConnectResult): void {
-    this.setState(params);
+    if (params.type === 'prod') this.setState(params);
   }
 
   handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
