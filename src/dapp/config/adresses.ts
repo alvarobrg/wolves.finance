@@ -14,8 +14,8 @@ const addresses = {
   },
   4: {
     //rinkeby
-    token: '0xD19f4298C9c66E0D91DCDD815547Ff0f9A3129a4',
-    presale: '0x6d8C3BD8A11a08B65d2Ef50A27faf307063BDDFB',
+    token: '0x83aab531fB86E13F4c3C28d79a773f532db6CF3F',
+    presale: '0x8DB66Bd8eB9e78370e4500E977aDb5365d1109cD',
   },
 };
 

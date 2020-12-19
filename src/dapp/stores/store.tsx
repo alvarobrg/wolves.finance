@@ -75,6 +75,8 @@ class Store {
   address = '';
   assets = {};
 
+  static nullAddress = '0x00000000000000000000000000000000';
+
   constructor() {
     this.web3Modal = new Web3Modal({
       network: this.networkName,
@@ -286,9 +288,13 @@ class Store {
             timeClose: ethers.BigNumber;
             timeNow: ethers.BigNumber;
             userEthAmount: ethers.BigNumber;
+            userEthInvested: ethers.BigNumber;
             userTokenAmount: ethers.BigNumber;
+            userTokenLocked: ethers.BigNumber;
           }
-        | undefined = await this.presaleContractRO?.getStates();
+        | undefined = await this.presaleContractRO?.getStates(
+        this.address === '' ? Store.nullAddress : this.address
+      );
 
       if (states) {
         const hasClosed = states.timeNow.gt(states.timeClose);

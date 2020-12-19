@@ -29,13 +29,12 @@ contract WolfToken is ERC20Capped, AccessControl {
     ERC20Capped(60000 * 1e18)
     ERC20('Wolf Token', 'WOLF')
   {
-    /* mint 11000 into teams wallet
+    /* mint 9875 into teams wallet
        1.) 500 tokens * 15 month = 7500 team rewards
-       2.) 1125 token for building up Uniswap v2 ETH / Token pool
-       3.) 1375 token for development costs (audits / bug-bounty ...)
-       4.) 1000 token for marketing (influencer / design ...)
+       2.) 1375 token for development costs (audits / bug-bounty ...)
+       3.) 1000 token for marketing (influencer / design ...)
     */
-    _mint(_teamWallet, 11000 * 1e18);
+    _mint(_teamWallet, 9875 * 1e18);
     // Multi-sig teamwallet has initial admin rights, eg for adding minters
     _setupRole(DEFAULT_ADMIN_ROLE, _teamWallet);
     // Create the UniV2 liquidity pool
