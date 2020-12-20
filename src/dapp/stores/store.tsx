@@ -119,7 +119,7 @@ class Store {
   connect = async () => {
     try {
       if (this.ethersProvider !== null) {
-        this.disconnect(false);
+        await this.disconnect(false);
       }
       const web3Provider = await this.web3Modal.connect();
       await this.subscribeProvider(web3Provider);
@@ -131,7 +131,7 @@ class Store {
       this.chainId = network.chainId;
       this.networkName = network.name;
       this._launchEventProvider();
-      if (await this._setupContracts()) this._emitNetworkChange();
+      if (this._setupContracts()) this._emitNetworkChange();
     } catch (e) {
       console.log(e);
       await this.disconnect(true);
@@ -195,6 +195,11 @@ class Store {
       this.web3Modal.clearCachedProvider();
       this._emitNetworkChange();
     }
+  };
+
+  close = async () => {
+    await this.disconnect(true);
+    await this.eventProvider?.destroy();
   };
 
   isConnected = () => {

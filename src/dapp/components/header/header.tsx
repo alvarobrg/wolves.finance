@@ -36,7 +36,7 @@ class Header extends Component<unknown, CSTATE> {
 
   componentWillUnmount(): void {
     this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
-    this.store.disconnect(true);
+    this.store.close();
   }
 
   onConnectionChanged(params: ConnectResult): void {

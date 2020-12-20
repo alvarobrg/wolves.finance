@@ -31,7 +31,7 @@
     "lint-chain": "solhint 'contracts/**/*.sol'",
     "start": "react-scripts start",
     "test": "yarn test-chain && yarn test-app",
-    "test-app": "CI=true react-scripts test --passWithNoTests",
+    "test-app": "react-scripts test --passWithNoTests",
     "test-chain": "ts-mocha --recursive --extension ts --require esm"
   },
   "dependencies": {

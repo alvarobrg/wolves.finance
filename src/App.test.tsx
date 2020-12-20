@@ -8,10 +8,10 @@
 
 import { render, screen } from '@testing-library/react';
 
-import App from './App';
+import Header from './components/header';
 
-test('renders title', () => {
-  render(<App />);
+test('renders header title', () => {
+  render(<Header />);
   const titleElement = screen.getByText('THE WOLVES & THE BOIS');
   expect(titleElement).toBeInTheDocument();
 });
