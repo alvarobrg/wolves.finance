@@ -2,7 +2,7 @@
   "name": "wolves.finance",
   "version": "1.0.0",
   "description": "DeFi meets gamification",
-  "homepage": "https://peak3d.github.io",
+  "homepage": "https://wolvesofwallstreet.github.io",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=14.0.0",
@@ -24,7 +24,7 @@
     "audit": "audit-ci --moderate --package-manager yarn",
     "build": "react-scripts build",
     "compile": "hardhat compile",
-    "deploy": "gh-pages -b master -r https://github.com/peak3d/peak3d.github.io.git -d build",
+    "deploy": "gh-pages -b master -r https://github.com/wolvesofwallstreet/wolvesofwallstreet.github.io.git -d build",
     "format": "prettier --write . && eslint --fix .",
     "lint": "yarn lint-chain && yarn lint-app",
     "lint-app": "prettier --check . && eslint .",

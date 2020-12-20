@@ -36,6 +36,11 @@ type Payload = {
   content: PayloadContent;
 };
 
+type ChainAddresses = {
+  token: string;
+  presale: string;
+};
+
 export type TokenContractResult = {
   tokenAmount: number | undefined;
 };
@@ -75,7 +80,7 @@ class Store {
   address = '';
   assets = {};
 
-  static nullAddress = '0x00000000000000000000000000000000';
+  static nullAddress = '0x0000000000000000000000000000000000000000';
 
   constructor() {
     this.web3Modal = new Web3Modal({
@@ -124,14 +129,15 @@ class Store {
       const web3Provider = await this.web3Modal.connect();
       await this.subscribeProvider(web3Provider);
 
-      this.ethersProvider = new ethers.providers.Web3Provider(web3Provider);
-      const accounts = await this.ethersProvider.listAccounts();
+      const ethersProvider = new ethers.providers.Web3Provider(web3Provider);
+      const accounts = await ethersProvider.listAccounts();
       this.address = accounts[0];
-      const network = await this.ethersProvider.getNetwork();
+      const network = await ethersProvider.getNetwork();
       this.chainId = network.chainId;
       this.networkName = network.name;
-      this._launchEventProvider();
-      if (this._setupContracts()) this._emitNetworkChange();
+      await this._launchEventProvider();
+      if (this._setupContracts(ethersProvider)) this._emitNetworkChange();
+      this.ethersProvider = ethersProvider;
     } catch (e) {
       console.log(e);
       await this.disconnect(true);
@@ -141,7 +147,7 @@ class Store {
   autoconnect = async (defaultNetwork: string | null) => {
     if (defaultNetwork) this.networkName = defaultNetwork;
 
-    this._launchEventProvider();
+    await this._launchEventProvider();
     if (this.web3Modal.cachedProvider) {
       await this.connect();
     }
@@ -228,13 +234,14 @@ class Store {
         !this.eventProvider ||
         (await this.eventProvider?.getNetwork()).chainId !== this.chainId
       ) {
-        this.eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
+        const eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
           this.networkName,
           process.env.REACT_APP_INFURA_ID
         );
         if (!this.chainId)
-          this.chainId = (await this.eventProvider.getNetwork()).chainId;
-        this._setupContracts();
+          this.chainId = (await eventProvider.getNetwork()).chainId;
+        this._setupEventContracts(eventProvider);
+        this.eventProvider = eventProvider;
         console.log('EventProvider launched on network: ', this.networkName);
         emitter.emit(CONNECTION_CHANGED, {
           type: 'event',
@@ -252,36 +259,43 @@ class Store {
 
   /******************** Contracts *********************/
 
-  _setupContracts(): boolean {
-    let chainAddresses: { token: string; presale: string };
-
+  _getChainAddresses(): ChainAddresses | null {
     switch (this.chainId) {
       case 1:
-        chainAddresses = addresses[1];
-        break;
+        return addresses[1];
       case 4:
-        chainAddresses = addresses[4];
-        break;
+        return addresses[4];
       default:
-        return false;
+        return null;
     }
+  }
 
-    if (this.eventProvider)
+  _setupEventContracts(
+    provider: ethers.providers.InfuraWebSocketProvider
+  ): void {
+    const chainAddresses = this._getChainAddresses();
+
+    if (chainAddresses) {
       this.presaleContractRO = new ethers.Contract(
         chainAddresses.presale,
         CrowdsaleAbi,
-        this.eventProvider
+        provider
       );
+    }
+  }
 
-    if (this.ethersProvider) {
-      const signer = this.ethersProvider?.getSigner();
+  _setupContracts(provider: ethers.providers.Web3Provider): boolean {
+    const chainAddresses = this._getChainAddresses();
+    if (chainAddresses) {
+      const signer = provider?.getSigner();
       this.presaleContract = new ethers.Contract(
         chainAddresses.presale,
         CrowdsaleAbi,
         signer
       );
+      return true;
     }
-    return true;
+    return false;
   }
 
   _getPresaleState = async (payloadContent: PayloadContent) => {
