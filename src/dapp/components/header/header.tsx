@@ -29,14 +29,11 @@ class Header extends Component<unknown, CSTATE> {
   }
 
   componentDidMount(): void {
-    const query = new URLSearchParams(window.location.search);
-    this.store.autoconnect(query.get('network'));
     this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
   }
 
   componentWillUnmount(): void {
     this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
-    this.store.close();
   }
 
   onConnectionChanged(params: ConnectResult): void {

@@ -14,6 +14,57 @@ import DappHeader from '../../dapp/components/header/header';
 import DappForm from '../../dapp/components/presale/presale';
 
 class PresaleForm extends DappForm {
+  tickerHandle: number | undefined = undefined;
+
+  componentWillUnmount(): void {
+    super.componentWillUnmount();
+    if (this.tickerHandle !== undefined) clearInterval(this.tickerHandle);
+  }
+
+  onTicker(tickerEnd: number): void {
+    const secondsLeft = tickerEnd - Date.now() + 500;
+
+    if (secondsLeft < 0) return;
+
+    const msecInMinute = 1000 * 60;
+    const msecInHour = msecInMinute * 60;
+    const msecInDay = msecInHour * 24;
+
+    const days = Math.floor(secondsLeft / msecInDay)
+      .toString()
+      .padStart(2, '0');
+    const hours = Math.floor((secondsLeft % msecInDay) / msecInHour)
+      .toString()
+      .padStart(2, '0');
+    const minutes = Math.floor((secondsLeft % msecInHour) / msecInMinute)
+      .toString()
+      .padStart(2, '0');
+    const seconds = Math.floor((secondsLeft % msecInMinute) / 1000)
+      .toString()
+      .padStart(2, '0');
+
+    const result =
+      days + 'd : ' + hours + 'h : ' + minutes + 'm : ' + seconds + 's';
+    window.dispatchEvent(new CustomEvent('PRESALE_TICKER', { detail: result }));
+  }
+
+  _manageTimers(
+    isOpen: boolean,
+    hasClosed: boolean,
+    timeToNextEvent: number
+  ): void {
+    super._manageTimers(isOpen, hasClosed, timeToNextEvent);
+    if (this.tickerHandle !== undefined) {
+      clearInterval(this.tickerHandle);
+      this.tickerHandle = undefined;
+    }
+    if (timeToNextEvent) {
+      this.tickerHandle = setInterval(this.onTicker, 1000, [
+        Date.now() + timeToNextEvent * 1000,
+      ]);
+    }
+  }
+
   _renderStatus(): ReactNode {
     return (
       <div>
@@ -46,14 +97,34 @@ class PresaleForm extends DappForm {
   }
 }
 
-class Presale extends Component {
+class Presale extends Component<unknown> {
+  clockRef: React.RefObject<HTMLDivElement> = React.createRef();
+
+  constructor(props: unknown) {
+    super(props);
+    this.handleTickEvent = this.handleTickEvent.bind(this);
+  }
+
+  componentDidMount(): void {
+    window.addEventListener('PRESALE_TICKER', this.handleTickEvent);
+  }
+
+  componentWillUnmount(): void {
+    window.removeEventListener('PRESALE_TICKER', this.handleTickEvent);
+  }
+
+  handleTickEvent(event: Event): void {
+    if (this.clockRef.current)
+      this.clockRef.current.innerHTML = (event as CustomEvent).detail;
+  }
+
   render(): ReactNode {
     return (
       <div className="presale-main presale-column">
         <div className="helper-conn-btn" />
         <div className="presale-Info">
           <span className="ticker-text">PRE-SALE IS LIVE NOW</span>
-          <div className="time-ticker" />
+          <div className="time-ticker" ref={this.clockRef} />
         </div>
         <DappHeader />
         <div className="presale-text-container presale-column">
@@ -68,11 +139,13 @@ class Presale extends Component {
             </b>
           </div>
           <div className="presale-text presale-small">
-            ETH from pre-sale is stored in our multi-sig wallet.
+            Your WOLF token are initially <b>locked</b>. You can
             <br />
-            After pre-sale we set up the UNI-V2 LP pool.
+            <b>claim at any time</b>, but you loose the chance to
             <br />
-            See tokenomics for more information
+            get the early adopter surprise if you do so
+            <br />
+            before our dapp has launched.
           </div>
         </div>
         <PresaleForm />

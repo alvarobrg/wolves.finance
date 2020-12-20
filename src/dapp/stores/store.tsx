@@ -12,6 +12,7 @@ import async from 'async';
 import { ethers } from 'ethers';
 import Emitter from 'events';
 import Dispatcher from 'flux';
+import React from 'react';
 import Web3Modal from 'web3modal';
 
 import { addresses } from '../config/adresses';
@@ -204,8 +205,10 @@ class Store {
   };
 
   close = async () => {
+    this.presaleContractRO = null;
     await this.disconnect(true);
     await this.eventProvider?.destroy();
+    this.eventProvider = null;
   };
 
   isConnected = () => {
@@ -329,7 +332,9 @@ class Store {
               ? states.timeClose.sub(states.timeNow)
               : states.timeOpen.sub(states.timeNow),
             ethUser: this.fromWei(states.userEthAmount),
+            ethInvested: this.fromWei(states.userEthInvested),
             tokenUser: this.fromWei(states.userTokenAmount),
+            tokenLocked: this.fromWei(states.userTokenLocked),
           },
         });
       }
@@ -410,5 +415,20 @@ const StoreClasses = {
   emitter: emitter,
   dispatcher: dispatcher,
 };
+
+export class StoreContainer extends React.Component {
+  componentDidMount(): void {
+    const query = new URLSearchParams(window.location.search);
+    StoreClasses.store.autoconnect(query.get('network'));
+  }
+
+  componentWillUnmount(): void {
+    StoreClasses.store.close();
+  }
+
+  render(): React.ReactNode {
+    return <>{this.props.children}</>;
+  }
+}
 
 export { StoreClasses };

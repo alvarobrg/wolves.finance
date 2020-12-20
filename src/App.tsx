@@ -16,16 +16,19 @@ import HowTo from './components/howto/howto';
 import Info from './components/info/info';
 import News from './components/news/news';
 import Presale from './components/presale/presale';
+import { StoreContainer } from './dapp/stores/store';
 
 class App extends React.Component {
   render(): JSX.Element {
     return (
       <div className="App">
-        <Header />
-        <News />
-        <HowTo />
-        <Info />
-        <Presale />
+        <StoreContainer>
+          <Header />
+          <News />
+          <HowTo />
+          <Info />
+          <Presale />
+        </StoreContainer>
       </div>
     );
   }

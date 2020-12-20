@@ -30,7 +30,9 @@ interface CSTATE {
   isOpen: boolean;
   timeToNextEvent: number;
   ethUser: number;
+  ethInvested: number;
   tokenUser: number;
+  tokenLocked: number;
 }
 
 const INITIALSTATE: CSTATE = {
@@ -42,13 +44,17 @@ const INITIALSTATE: CSTATE = {
   isOpen: false,
   timeToNextEvent: 0,
   ethUser: 0,
+  ethInvested: 0,
   tokenUser: 0,
+  tokenLocked: 0,
 };
 
 const INITIALCONNSTATE = {
   connected: false,
   ethUser: 0,
+  ethInvested: 0,
   tokenUser: 0,
+  tokenLocked: 0,
 };
 
 class Presale extends Component<unknown, CSTATE> {
@@ -92,18 +98,20 @@ class Presale extends Component<unknown, CSTATE> {
     if (params.type === 'event')
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
     else if (params.address === '') this.setState({ ...INITIALCONNSTATE });
-    else this.setState({ connected: true });
+    else {
+      this.setState({ connected: true });
+      this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
+    }
   }
 
   onPresaleState(params: PresaleResult): void {
     if (params['error'] === undefined) {
       this.setState(params.state);
-      if (this.timeoutHandle) clearTimeout(this.timeoutHandle);
-      if (params.state.timeToNextEvent)
-        this.timeoutHandle = setTimeout(
-          this.onTimeout,
-          params.state.timeToNextEvent * 1000
-        );
+      this._manageTimers(
+        params.state.isOpen,
+        params.state.hasClosed,
+        params.state.timeToNextEvent
+      );
     }
   }
 
@@ -149,6 +157,19 @@ class Presale extends Component<unknown, CSTATE> {
       event.target.value = Presale.defaultEthValue;
   }
 
+  _manageTimers(
+    isOpen: boolean,
+    hasClosed: boolean,
+    timeToNextEvent: number
+  ): void {
+    if (this.timeoutHandle) {
+      clearTimeout(this.timeoutHandle);
+      this.timeoutHandle = undefined;
+    }
+    if (timeToNextEvent)
+      this.timeoutHandle = setTimeout(this.onTimeout, timeToNextEvent * 1000);
+  }
+
   _renderStatus(ethRaised: number): ReactNode {
     return <div />;
   }
@@ -174,8 +195,21 @@ class Presale extends Component<unknown, CSTATE> {
       this.state.waiting ||
       !this.state.inputValid;
 
+    const investLimit = Math.min(
+      this.state.ethUser,
+      3.0 - this.state.ethInvested
+    );
+
     return (
       <form className="dp-pre-form" onSubmit={this.handleSubmit}>
+        <span className="dp-pre-label">
+          Your limit:{' '}
+          {this.state.connected
+            ? investLimit.toFixed(2).toString().replace('.', ',')
+            : '--,--'}{' '}
+          ETH
+        </span>
+        <br />
         <input
           type="text"
           defaultValue={Presale.defaultEthValue}
