@@ -28,7 +28,7 @@ const emitter = new Emitter.EventEmitter();
 const dispatcher = new Dispatcher.Dispatcher();
 
 type PayloadContent = {
-  amount: number;
+  amount: number | undefined;
   filter: Array<string> | undefined;
 };
 
@@ -148,10 +148,9 @@ class Store {
   autoconnect = async (defaultNetwork: string | null) => {
     if (defaultNetwork) this.networkName = defaultNetwork;
 
-    await this._launchEventProvider();
     if (this.web3Modal.cachedProvider) {
       await this.connect();
-    }
+    } else await this._launchEventProvider();
   };
 
   subscribeProvider = async (provider: ethers.providers.Provider) => {
@@ -207,6 +206,7 @@ class Store {
   close = async () => {
     this.presaleContractRO = null;
     await this.disconnect(true);
+    this.eventProvider?.removeAllListeners();
     await this.eventProvider?.destroy();
     this.eventProvider = null;
   };
@@ -220,6 +220,18 @@ class Store {
   };
 
   _setupEvents(): boolean {
+    // Listen to all presale TokensPurchased events
+    if (this.presaleContractRO) {
+      const filter = this.presaleContractRO.filters.TokensPurchased(
+        null,
+        null,
+        null,
+        null
+      );
+      this.eventProvider?.on(filter, (log, event) => {
+        this._getPresaleState(undefined);
+      });
+    }
     return true;
   }
 
@@ -243,8 +255,14 @@ class Store {
         );
         if (!this.chainId)
           this.chainId = (await eventProvider.getNetwork()).chainId;
+
         this._setupEventContracts(eventProvider);
+
+        if (this.eventProvider) this.eventProvider?.removeAllListeners();
+
         this.eventProvider = eventProvider;
+        this._setupEvents();
+
         console.log('EventProvider launched on network: ', this.networkName);
         emitter.emit(CONNECTION_CHANGED, {
           type: 'event',
@@ -301,7 +319,7 @@ class Store {
     return false;
   }
 
-  _getPresaleState = async (payloadContent: PayloadContent) => {
+  _getPresaleState = async (payloadContent: PayloadContent | undefined) => {
     try {
       const states:
         | {
@@ -372,7 +390,7 @@ class Store {
   _doPresale = async (payloadContent: PayloadContent) => {
     try {
       const { amount } = payloadContent;
-      const investAmount = { value: this.toWei(amount) };
+      const investAmount = { value: this.toWei(amount || 0) };
 
       const tx:
         | ethers.ContractTransaction

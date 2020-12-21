@@ -76,7 +76,10 @@ class PresaleForm extends DappForm {
       this.tickerHandle = setInterval(this.onTicker, 1000, [
         Date.now() + timeToNextEvent * 1000,
       ]);
-    }
+    } else
+      window.dispatchEvent(
+        new CustomEvent('PRESALE_TICKER', { detail: { time: '-- : --' } })
+      );
   }
 
   _renderStatus(): ReactNode {
@@ -91,7 +94,7 @@ class PresaleForm extends DappForm {
             className="progress-label"
             style={{ textAlign: 'right', paddingRight: '6px' }}
           >
-            {this.state.ethRaised.toFixed(2)} ETH
+            {this.state.ethRaised.toFixed(2).toString().replace('.', ',')} ETH
           </div>
           <div className="progress-outer">
             <div

@@ -40,7 +40,7 @@ const INITIALSTATE: CSTATE = {
   waiting: false,
   inputValid: false,
   ethRaised: 0,
-  hasClosed: false,
+  hasClosed: true,
   isOpen: false,
   timeToNextEvent: 0,
   ethUser: 0,
@@ -51,6 +51,17 @@ const INITIALSTATE: CSTATE = {
 
 const INITIALCONNSTATE = {
   connected: false,
+  ethUser: 0,
+  ethInvested: 0,
+  tokenUser: 0,
+  tokenLocked: 0,
+};
+
+const FAILURESTATE = {
+  ethRaised: 0,
+  hasClosed: true,
+  isOpen: false,
+  timeToNextEvent: 0,
   ethUser: 0,
   ethInvested: 0,
   tokenUser: 0,
@@ -97,7 +108,7 @@ class Presale extends Component<unknown, CSTATE> {
   onConnectionChanged(params: ConnectResult): void {
     if (params.type === 'event')
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
-    else if (params.address === '') this.setState({ ...INITIALCONNSTATE });
+    else if (params.address === '') this.setState(INITIALCONNSTATE);
     else {
       this.setState({ connected: true });
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
@@ -112,6 +123,9 @@ class Presale extends Component<unknown, CSTATE> {
         params.state.hasClosed,
         params.state.timeToNextEvent
       );
+    } else {
+      this.setState(FAILURESTATE);
+      this._manageTimers(false, true, 0);
     }
   }
 
