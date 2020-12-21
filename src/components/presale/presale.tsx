@@ -43,9 +43,10 @@ class PresaleForm extends DappForm {
       .toString()
       .padStart(2, '0');
 
-    const result =
-      days + 'd : ' + hours + 'h : ' + minutes + 'm : ' + seconds + 's';
-    window.dispatchEvent(new CustomEvent('PRESALE_TICKER', { detail: result }));
+    const result = days + 'd:' + hours + 'h:' + minutes + 'm:' + seconds + 's';
+    window.dispatchEvent(
+      new CustomEvent('PRESALE_TICKER', { detail: { time: result } })
+    );
   }
 
   _manageTimers(
@@ -54,6 +55,19 @@ class PresaleForm extends DappForm {
     timeToNextEvent: number
   ): void {
     super._manageTimers(isOpen, hasClosed, timeToNextEvent);
+
+    window.dispatchEvent(
+      new CustomEvent('PRESALE_TICKER', {
+        detail: {
+          text: isOpen
+            ? 'PRE-SALE IS LIVE NOW'
+            : hasClosed
+            ? 'PRE-SALE IS OVER'
+            : 'PRE-SALE COUNTDOWN IS ON',
+        },
+      })
+    );
+
     if (this.tickerHandle !== undefined) {
       clearInterval(this.tickerHandle);
       this.tickerHandle = undefined;
@@ -98,6 +112,7 @@ class PresaleForm extends DappForm {
 }
 
 class Presale extends Component<unknown> {
+  textRef: React.RefObject<HTMLSpanElement> = React.createRef();
   clockRef: React.RefObject<HTMLDivElement> = React.createRef();
 
   constructor(props: unknown) {
@@ -114,8 +129,11 @@ class Presale extends Component<unknown> {
   }
 
   handleTickEvent(event: Event): void {
-    if (this.clockRef.current)
-      this.clockRef.current.innerHTML = (event as CustomEvent).detail;
+    const detail = (event as CustomEvent).detail;
+    if (detail.time && this.clockRef.current)
+      this.clockRef.current.innerHTML = detail.time;
+    else if (detail.text && this.textRef.current)
+      this.textRef.current.innerHTML = detail.text;
   }
 
   render(): ReactNode {
@@ -123,7 +141,9 @@ class Presale extends Component<unknown> {
       <div className="presale-main presale-column">
         <div className="helper-conn-btn" />
         <div className="presale-Info">
-          <span className="ticker-text">PRE-SALE IS LIVE NOW</span>
+          <span className="ticker-text" ref={this.textRef}>
+            PRE-SALE
+          </span>
           <div className="time-ticker" ref={this.clockRef} />
         </div>
         <DappHeader />

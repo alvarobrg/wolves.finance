@@ -124,9 +124,9 @@
 }
 
 .time-ticker {
-  font-family: NewsCycle-Regular;
-  padding-top: 6px;
+  font-family: 'Roboto Mono', monospace;
+  padding-top: 8px;
   color: red;
   font-size: 28px;
-  font-weight: 600;
+  font-weight: 400;
 }
