@@ -32,8 +32,11 @@ class News extends Component<unknown> {
     const detail = (event as CustomEvent).detail;
     if (detail.time && this.clockRef.current)
       this.clockRef.current.innerHTML = detail.time;
-    else if (detail.text && this.textRef.current)
+    else if (detail.text && this.textRef.current) {
       this.textRef.current.innerHTML = detail.text;
+      if (this.clockRef.current)
+        this.clockRef.current.style.color = detail.isOpen ? 'lime' : 'red';
+    }
   }
 
   render(): ReactNode {

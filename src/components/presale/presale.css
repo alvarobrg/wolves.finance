@@ -63,8 +63,6 @@
 }
 
 .dp-pre-btn {
-  position: relative;
-  top: -2px;
   border: black 1px solid;
   background-color: rgb(3, 32, 66);
   color: rgb(203, 138, 108);
@@ -81,11 +79,12 @@
 }
 
 .dp-pre-input {
-  font-family: VincAlt;
+  font-family: NewsCycle-Regular;
+  font-weight: bold;
   color: rgb(203, 138, 108);
   margin-right: 5px;
-  padding-top: 4px;
-  font-size: 24px;
+  font-size: 16px;
+  line-height: 16px;
   height: 40px;
   width: 35%;
 }
@@ -126,7 +125,6 @@
 .time-ticker {
   font-family: 'Roboto Mono', monospace;
   padding-top: 8px;
-  color: red;
   font-size: 28px;
   font-weight: 400;
 }

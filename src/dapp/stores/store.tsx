@@ -205,7 +205,7 @@ class Store {
 
   close = async () => {
     this.presaleContractRO = null;
-    await this.disconnect(true);
+    await this.disconnect(false);
     this.eventProvider?.removeAllListeners();
     await this.eventProvider?.destroy();
     this.eventProvider = null;
@@ -258,7 +258,7 @@ class Store {
 
         this._setupEventContracts(eventProvider);
 
-        if (this.eventProvider) this.eventProvider?.removeAllListeners();
+        this.eventProvider?.removeAllListeners();
 
         this.eventProvider = eventProvider;
         this._setupEvents();
@@ -347,8 +347,8 @@ class Store {
             timeToNextEvent: hasClosed
               ? 0
               : isOpen
-              ? states.timeClose.sub(states.timeNow)
-              : states.timeOpen.sub(states.timeNow),
+              ? states.timeClose.sub(states.timeNow).toNumber() + 20
+              : states.timeOpen.sub(states.timeNow).toNumber() + 20,
             ethUser: this.fromWei(states.userEthAmount),
             ethInvested: this.fromWei(states.userEthInvested),
             tokenUser: this.fromWei(states.userTokenAmount),

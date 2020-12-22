@@ -346,13 +346,13 @@ contract Crowdsale is Context, ReentrancyGuard {
     // Add Liquidity, receiver of pool tokens is _wallet
     _token.approve(address(_uniV2Router), tokenToLp);
     (uint256 amountToken, uint256 amountETH, uint256 liquidity) =
-      _uniV2Router.addLiquidityETH(
+      _uniV2Router.addLiquidityETH{ value: ethBalance }(
         address(_token),
         tokenToLp,
         tokenToLp,
         ethBalance,
         _wallet,
-        block.number + 60
+        block.timestamp + 86400
       );
     emit LiquidityAdded(amountToken, amountETH, liquidity);
 
