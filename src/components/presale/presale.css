@@ -15,7 +15,7 @@
   font-size: 18px;
 }
 
-@media screen and (max-width: 725px) {
+@media screen and (max-width: 750px) {
   .presale-column {
     flex-direction: column;
   }
@@ -41,7 +41,7 @@
 
 .dp-pre-label {
   display: inline-block;
-  width: calc(50% + 5px);
+  width: calc(60% + 5px);
   text-align: left;
 }
 
@@ -67,7 +67,7 @@
   background-color: rgb(3, 32, 66);
   color: rgb(203, 138, 108);
   height: 40px;
-  width: 15%;
+  width: 20%;
   min-width: 60px;
 }
 
@@ -86,7 +86,7 @@
   font-size: 16px;
   line-height: 16px;
   height: 40px;
-  width: 35%;
+  width: 40%;
 }
 
 .helper-conn-btn {
@@ -102,7 +102,7 @@
 .progress-outer {
   background-color: rgb(3, 32, 66);
   height: 40px;
-  width: 51%;
+  width: 61%;
   padding: 6px;
 }
 
@@ -115,11 +115,26 @@
   padding-top: 5px;
   font-family: VincAlt;
   font-size: 24px;
-  width: 24.5%;
+  width: 19.5%;
 }
 
 .tooltip {
   z-index: 1;
+}
+
+.dp-pre-claim-container {
+  display: flex;
+  vertical-align: baseline;
+  margin-top: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.dp-pre-claim-label {
+  display: inline-block;
+  width: 40%;
+  margin-right: 5px;
+  text-align: left;
 }
 
 .time-ticker {

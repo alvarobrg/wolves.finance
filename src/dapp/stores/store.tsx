@@ -145,7 +145,10 @@ class Store {
     }
   };
 
-  autoconnect = async (defaultNetwork: string | null) => {
+  autoconnect = async () => {
+    const query = new URLSearchParams(window.location.search);
+    const defaultNetwork = query.get('network');
+
     if (defaultNetwork) this.networkName = defaultNetwork;
 
     if (this.web3Modal.cachedProvider) {
@@ -199,16 +202,19 @@ class Store {
     this.address = '';
     if (clearCache) {
       this.web3Modal.clearCachedProvider();
-      this._emitNetworkChange();
     }
+    this._emitNetworkChange();
   };
 
   close = async () => {
     this.presaleContractRO = null;
     await this.disconnect(false);
-    this.eventProvider?.removeAllListeners();
-    await this.eventProvider?.destroy();
-    this.eventProvider = null;
+    if (this.eventProvider) {
+      this.eventProvider?.removeAllListeners();
+      this.eventProvider._websocket.onclose = null;
+      await this.eventProvider?.destroy();
+      this.eventProvider = null;
+    }
   };
 
   isConnected = () => {
@@ -257,6 +263,12 @@ class Store {
           this.chainId = (await eventProvider.getNetwork()).chainId;
 
         this._setupEventContracts(eventProvider);
+        eventProvider._websocket.onclose = () => {
+          this.close();
+        };
+        eventProvider._websocket.onerror = () => {
+          this.close();
+        };
 
         this.eventProvider?.removeAllListeners();
 
@@ -434,10 +446,9 @@ const StoreClasses = {
   dispatcher: dispatcher,
 };
 
-export class StoreContainer extends React.Component {
+export class StoreContainer extends React.Component<unknown> {
   componentDidMount(): void {
-    const query = new URLSearchParams(window.location.search);
-    StoreClasses.store.autoconnect(query.get('network'));
+    StoreClasses.store.autoconnect();
   }
 
   componentWillUnmount(): void {

@@ -106,10 +106,11 @@ class Presale extends Component<unknown, CSTATE> {
   }
 
   onConnectionChanged(params: ConnectResult): void {
-    if (params.type === 'event')
+    if (params.type === 'event') {
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
-    else if (params.address === '') this.setState(INITIALCONNSTATE);
-    else {
+    } else if (params.address === '') {
+      this.setState(INITIALCONNSTATE);
+    } else {
       this.setState({ connected: true });
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
     }
@@ -209,6 +210,8 @@ class Presale extends Component<unknown, CSTATE> {
       this.state.waiting ||
       !this.state.inputValid;
 
+    const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
+
     const investLimit = Math.min(
       this.state.ethUser,
       3.0 - this.state.ethInvested
@@ -256,6 +259,23 @@ class Presale extends Component<unknown, CSTATE> {
           )}
         </Overlay>
         {this._renderStatus(this.state.ethRaised)}
+        <div className="dp-pre-claim-container">
+          <span className="dp-pre-claim-label">
+            {' '}
+            WOLF token locked:&nbsp;
+            <b>
+              {this.state.connected
+                ? this.state.tokenLocked.toFixed(2).toString().replace('.', ',')
+                : '-,-'}
+            </b>
+          </span>
+          <input
+            className="dp-pre-btn dp-pre-btn-claim"
+            type="button"
+            value={claimDisabled ? ' ' : 'CLAIM'}
+            disabled={claimDisabled}
+          />
+        </div>
       </form>
     );
   }
