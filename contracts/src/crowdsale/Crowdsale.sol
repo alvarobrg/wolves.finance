@@ -18,7 +18,7 @@ import 'contracts/interfaces/uniswap/IUniswapV2Router02.sol';
 interface IERC20WolfMintable is IERC20 {
   function mint(address account, uint256 amount) external returns (bool);
 
-  function allowUniswap(bool allow) external;
+  function enableUniV2Pair(bool enable) external;
 }
 
 /**
@@ -356,14 +356,14 @@ contract Crowdsale is Context, ReentrancyGuard {
       );
     emit LiquidityAdded(amountToken, amountETH, liquidity);
 
-    // finally open uniswapv2 LP pool on token contract
-    _token.allowUniswap(true);
+    // finally whitelist uniV2 LP pool on token contract
+    _token.enableUniV2Pair(true);
   }
 
   function testSetTimes() public {
     _openingTime = block.timestamp + 300;
     _closingTime = block.timestamp + 600;
-    _token.allowUniswap(false);
+    _token.enableUniV2Pair(false);
   }
 
   /**

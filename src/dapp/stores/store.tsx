@@ -20,6 +20,7 @@ import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
   PRESALE_BUY,
+  PRESALE_CLAIM,
   PRESALE_STATE,
   TX_HASH,
 } from './constants';
@@ -105,6 +106,9 @@ class Store {
           break;
         case PRESALE_BUY:
           this._doPresale(_payload.content);
+          break;
+        case PRESALE_CLAIM:
+          this._doPresaleClaim(_payload.content);
           break;
         case PRESALE_STATE:
           this._getPresaleState(_payload.content);
@@ -416,6 +420,21 @@ class Store {
       emitter.emit(PRESALE_BUY, {});
     } catch (e) {
       emitter.emit(PRESALE_BUY, { error: e.message });
+    }
+  };
+
+  // Buy tokens for {amount} ETH
+  _doPresaleClaim = async (payloadContent: PayloadContent) => {
+    try {
+      const tx:
+        | ethers.ContractTransaction
+        | undefined = await this.presaleContract?.claimTokens();
+      emitter.emit(TX_HASH, tx?.hash);
+
+      await tx?.wait();
+      emitter.emit(PRESALE_CLAIM, {});
+    } catch (e) {
+      emitter.emit(PRESALE_CLAIM, { error: e.message });
     }
   };
 

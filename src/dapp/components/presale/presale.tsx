@@ -12,6 +12,7 @@ import { Overlay, Tooltip } from 'react-bootstrap';
 import {
   CONNECTION_CHANGED,
   PRESALE_BUY,
+  PRESALE_CLAIM,
   PRESALE_STATE,
 } from '../../stores/constants';
 import {
@@ -84,6 +85,7 @@ class Presale extends Component<unknown, CSTATE> {
     this.handleOnFocus = this.handleOnFocus.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.handleClaim = this.handleClaim.bind(this);
     this.onConnectionChanged = this.onConnectionChanged.bind(this);
     this.onPresaleState = this.onPresaleState.bind(this);
     this.onPresaleBuy = this.onPresaleBuy.bind(this);
@@ -170,6 +172,13 @@ class Presale extends Component<unknown, CSTATE> {
   handleOnBlur(event: React.FocusEvent<HTMLInputElement>): void {
     if (event.target.value.trim() === '')
       event.target.value = Presale.defaultEthValue;
+  }
+
+  handleClaim(event: React.MouseEvent): void {
+    this.dispatcher.dispatch({
+      type: PRESALE_CLAIM,
+      content: { amount: 0 },
+    });
   }
 
   _manageTimers(
@@ -274,6 +283,7 @@ class Presale extends Component<unknown, CSTATE> {
             type="button"
             value={claimDisabled ? ' ' : 'CLAIM'}
             disabled={claimDisabled}
+            onClick={this.handleClaim}
           />
         </div>
       </form>

@@ -12,18 +12,22 @@ import '@openzeppelin/contracts/token/ERC20/ERC20Capped.sol';
 import '@openzeppelin/contracts/access/AccessControl.sol';
 import 'contracts/interfaces/uniswap/IUniswapV2Router02.sol';
 import 'contracts/interfaces/uniswap/IUniswapV2Factory.sol';
+import 'contracts/interfaces/uniswap/IUniswapV2Pair.sol';
 
 contract WolfToken is ERC20Capped, AccessControl {
   bytes32 public constant MINTER_ROLE = 'minter_role';
 
-  IUniswapV2Factory private constant _uniswapV2Factory =
+  IUniswapV2Factory private constant _uniV2Factory =
     IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
-  IUniswapV2Router02 private constant _uniswapV2Router =
+  IUniswapV2Router02 private constant _uniV2Router =
     IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-  bool public _uniV2Allowed = false;
-  address public immutable _uniV2Pair;
 
-  //We inherited the ERC20Capped.sol
+  address public immutable _uniV2Pair;
+  // if true, this pair is blocked
+  mapping(address => bool) _uniV2Blacklist;
+  uint256 _uniV2PairsScanned = _uniV2Factory.allPairsLength();
+
+  // We inherited the ERC20Capped.sol
   constructor(address _teamWallet)
     // 60.000 tokens maximal supply
     ERC20Capped(60000 * 1e18)
@@ -38,8 +42,9 @@ contract WolfToken is ERC20Capped, AccessControl {
     // Multi-sig teamwallet has initial admin rights, eg for adding minters
     _setupRole(DEFAULT_ADMIN_ROLE, _teamWallet);
     // Create the UniV2 liquidity pool
-    address weth = _uniswapV2Router.WETH();
-    _uniV2Pair = _uniswapV2Factory.createPair(address(this), weth);
+    address weth = _uniV2Router.WETH();
+    _uniV2Pair = _uniV2Factory.createPair(address(this), weth);
+    _updateUniV2Blacklist();
   }
 
   // mint is only allowed by addresses with minter role
@@ -49,22 +54,63 @@ contract WolfToken is ERC20Capped, AccessControl {
     return true;
   }
 
-  // Allow UNIV2Router access for everyone
-  function allowUniswap(bool allow) external {
+  // remove ETH/WOLF univ2 pair address from blacklist
+  function enableUniV2Pair(bool enable) external {
     require(hasRole(MINTER_ROLE, msg.sender));
-    _uniV2Allowed = allow;
+    _uniV2Blacklist[_uniV2Pair] = !enable;
   }
 
-  // prevent transfer to uniswapv2 during pre-sale
+  // remove univ2 pair address from blacklist
+  function enableUniV2Pair(address pairAddress) external {
+    require(
+      hasRole(MINTER_ROLE, msg.sender) ||
+        hasRole(DEFAULT_ADMIN_ROLE, msg.sender)
+    );
+    _uniV2Blacklist[pairAddress] = false;
+  }
+
+  // add univ2 pair address to blacklist
+  function disableUniV2Pair(address pairAddress) external {
+    require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
+    _uniV2Blacklist[pairAddress] = true;
+  }
+
+  // request the state of the univ2 pair address
+  function isUniV2PairEnabled(address pairAddress)
+    external
+    view
+    returns (bool)
+  {
+    return !_uniV2Blacklist[pairAddress];
+  }
+
+  // override to prevent creation of uniswap LP's with WOLF token
   function _transfer(
     address sender,
     address recipient,
     uint256 amount
   ) internal override {
+    // Minters are always allowed to transfer
+    _updateUniV2Blacklist();
     require(
-      _uniV2Allowed || recipient != _uniV2Pair || hasRole(MINTER_ROLE, sender),
+      hasRole(MINTER_ROLE, sender) || !_uniV2Blacklist[recipient],
       'forbidden'
     );
     super._transfer(sender, recipient, amount);
+  }
+
+  function _updateUniV2Blacklist() public {
+    // Scan new UniV2Pairs
+    uint256 newPairCount = _uniV2Factory.allPairsLength();
+    for (
+      uint256 current = _uniV2PairsScanned;
+      current < newPairCount;
+      current++
+    ) {
+      IUniswapV2Pair pair = IUniswapV2Pair(_uniV2Factory.allPairs(current));
+      if (pair.token0() == address(this) || pair.token1() == address(this))
+        _uniV2Blacklist[address(pair)] = true;
+    }
+    _uniV2PairsScanned = newPairCount;
   }
 }
