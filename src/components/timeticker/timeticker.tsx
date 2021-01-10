@@ -22,7 +22,10 @@ class TimeTicker extends Component<TimeTickerProps> {
         <span className="tk-vincente-bold ticker-text" ref={this.props.textRef}>
           PRE-SALE
         </span>
-        <div className="tk-grotesk-bold time-ticker" ref={this.props.clockRef} />
+        <div
+          className="tk-grotesk-bold time-ticker"
+          ref={this.props.clockRef}
+        />
       </>
     );
   }

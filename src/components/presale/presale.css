@@ -23,7 +23,7 @@
 }
 
 .presale-text-width {
-  width:46%
+  width: 46%;
 }
 
 .presale-text-top {
@@ -36,7 +36,7 @@
     flex-direction: column;
   }
   .presale-text-width {
-    width:90%
+    width: 90%;
   }
 }
 

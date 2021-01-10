@@ -18,14 +18,18 @@ class Info extends Component {
     return (
       <div className="info-main">
         <div className="info-block m_right_10">
-          <span className="tk-vincente-bold info-title info-title-res">THE PAPER</span>
+          <span className="tk-vincente-bold info-title info-title-res">
+            THE PAPER
+          </span>
           <img alt="Visit Medium" src={paper} className="info-icon" />
           <a href="#medium" className="tk-aktiv-grotesk-condensed info-link">
             <b>READ MORE ON MEDIUM</b>
           </a>
         </div>
         <div className="info-block">
-          <span className="tk-vincente-bold info-title info-title-res">THE PLAN</span>
+          <span className="tk-vincente-bold info-title info-title-res">
+            THE PLAN
+          </span>
           <img alt="Show Roadmap" src={plan} className="info-icon" />
           <a href="#roadmap" className="tk-aktiv-grotesk-condensed info-link">
             <b>OPEN UP ROADMAP</b>

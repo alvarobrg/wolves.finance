@@ -154,13 +154,26 @@ class Presale extends Component<unknown> {
         <DappHeader />
         <div className="presale-text-container presale-column">
           <div className="presale-text presale-text-top presale-small-top">
-          Presale will occur in 1 round with a current hard cap of 100ETH. There will be a maximum cap of 3ETH per wallet. Keep in touch through our Telegram and Discord channels linked in header
+            Presale will occur in 1 round with a current hard cap of 100ETH.
+            There will be a maximum cap of 3ETH per wallet. Keep in touch
+            through our Telegram and Discord channels linked in header
           </div>
           <div className="presale-text presale-text-width presale-small">
-          <b>The pre-sale, when it goes live, will run directly through our contract, integrated here, which will automatically lock 50% of all ETH sent to the contract ready for Uniswap Liquidity and will send the other 50% to our vested team wallet which will be used for marketing & development.</b>
+            <b>
+              The pre-sale, when it goes live, will run directly through our
+              contract, integrated here, which will automatically lock 50% of
+              all ETH sent to the contract ready for Uniswap Liquidity and will
+              send the other 50% to our vested team wallet which will be used
+              for marketing & development.
+            </b>
           </div>
           <div className="presale-text presale-text-width presale-small">
-          <b>Bought tokens are locked in the contract until after the presale closes, at which point users can claim their tokens. Any remaining WOLF token not bought from the presale allocation of 3000, will be added to the rewards pool for public investors.</b>
+            <b>
+              Bought tokens are locked in the contract until after the presale
+              closes, at which point users can claim their tokens. Any remaining
+              WOLF token not bought from the presale allocation of 3000, will be
+              added to the rewards pool for public investors.
+            </b>
           </div>
         </div>
         <PresaleForm />
