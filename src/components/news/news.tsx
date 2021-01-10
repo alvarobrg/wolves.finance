@@ -11,6 +11,8 @@ import './news.css';
 import React, { Component, ReactNode } from 'react';
 import { Carousel } from 'react-bootstrap';
 
+import { TimeTicker } from '../timeticker';
+
 class News extends Component<unknown> {
   textRef: React.RefObject<HTMLSpanElement> = React.createRef();
   clockRef: React.RefObject<HTMLDivElement> = React.createRef();
@@ -42,10 +44,7 @@ class News extends Component<unknown> {
   render(): ReactNode {
     return (
       <div className="news-main">
-        <span className="ticker-text" ref={this.textRef}>
-          PRE-SALE
-        </span>
-        <div className="time-ticker" ref={this.clockRef} />
+        <TimeTicker textRef={this.textRef} clockRef={this.clockRef} />
         <Carousel interval={null}>
           <Carousel.Item>
             <div className="slidex" />

@@ -7,6 +7,8 @@
  */
 
 import './index.css';
+import 'assets/fonts/wp_fonts.css';
+import 'assets/fonts/font_variants.css';
 
 import React from 'react';
 import ReactDOM from 'react-dom';

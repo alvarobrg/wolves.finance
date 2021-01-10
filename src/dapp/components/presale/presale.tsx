@@ -7,7 +7,6 @@
  */
 
 import React, { Component, createRef, ReactNode } from 'react';
-import { Overlay, Tooltip } from 'react-bootstrap';
 
 import {
   CONNECTION_CHANGED,
@@ -202,12 +201,6 @@ class Presale extends Component<unknown, CSTATE> {
     return StoreClasses.store._getPresaleContractAddress() || '';
   }
 
-  _renderTooltip = (props: unknown): ReactNode => (
-    <Tooltip id="button-tooltip" {...props}>
-      Simple tooltip
-    </Tooltip>
-  );
-
   onButtonRefChanged(ref: HTMLInputElement): void {
     this.buttonRef = ref;
     this.forceUpdate();
@@ -229,7 +222,7 @@ class Presale extends Component<unknown, CSTATE> {
     return (
       <form className="dp-pre-form" onSubmit={this.handleSubmit}>
         <span className="dp-pre-label">
-          Your limit:{' '}
+          Your spend limit:{' '}
           {this.state.connected
             ? investLimit.toFixed(2).toString().replace('.', ',')
             : '--,--'}{' '}
@@ -242,6 +235,7 @@ class Presale extends Component<unknown, CSTATE> {
           name="eth_amount"
           id="eth_amount"
           ref={this.inputRef}
+          autoComplete="off"
           className="dp-pre-input"
           onChange={this.handleOnChange}
           onFocus={this.handleOnFocus}
@@ -250,23 +244,10 @@ class Presale extends Component<unknown, CSTATE> {
         <input
           className="dp-pre-btn"
           type="submit"
-          value={disabled ? ' ' : 'SEND'}
+          value="SEND"
           disabled={disabled}
           ref={this.onButtonRefChanged}
         />
-        <Overlay placement="top-start" target={this.buttonRef} show={disabled}>
-          {(props: unknown): ReactNode => (
-            <Tooltip id="button-tooltip" {...props}>
-              {!this.state.connected
-                ? 'Connect your wallet'
-                : !this.state.isOpen
-                ? 'Presale is not open'
-                : !this.state.inputValid
-                ? 'Enter amount > 0'
-                : 'Transaction pending'}
-            </Tooltip>
-          )}
-        </Overlay>
         {this._renderStatus(this.state.ethRaised)}
         <div className="dp-pre-claim-container">
           <span className="dp-pre-claim-label">
@@ -281,7 +262,7 @@ class Presale extends Component<unknown, CSTATE> {
           <input
             className="dp-pre-btn dp-pre-btn-claim"
             type="button"
-            value={claimDisabled ? ' ' : 'CLAIM'}
+            value="CLAIM"
             disabled={claimDisabled}
             onClick={this.handleClaim}
           />

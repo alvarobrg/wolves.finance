@@ -1,3 +1,11 @@
+/*
+ * Copyright (C) 2020 wolves.finance developers
+ * This file is part of wolves.finance - https://github.com/peak3d/wolves.finance
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * See the file LICENSES/README.md for more information.
+ */
+
 .presale-main {
   background-image: url(../../assets/banner_presale.jpg);
   background-position: center;
@@ -9,21 +17,35 @@
 }
 
 .presale-text {
-  margin-bottom: 16px;
   text-align: center;
-  font-family: NewsCycle-Regular;
-  font-size: 18px;
+  font-size: 21px;
+  margin: 0px auto 20px auto;
+}
+
+.presale-text-width {
+  width:46%
+}
+
+.presale-text-top {
+  width: 70%;
+  font-size: 22px;
 }
 
 @media screen and (max-width: 750px) {
   .presale-column {
     flex-direction: column;
   }
+  .presale-text-width {
+    width:90%
+  }
 }
 
 @media screen and (max-width: 400px) {
   .presale-small {
-    font-size: 13px;
+    font-size: 16px;
+  }
+  .presale-small-top {
+    font-size: 18px;
   }
   .presale-smaller,
   .dp-pre-label {
@@ -35,14 +57,16 @@
   margin-top: 40px;
   display: flex;
   justify-content: space-evenly;
-  align-items: center;
+  align-items: flex-start;
   flex-basis: 100%;
+  flex-wrap: wrap;
 }
 
 .dp-pre-label {
   display: inline-block;
   width: calc(60% + 5px);
   text-align: left;
+  font-size: 18px;
 }
 
 .dp-conn-form {
@@ -72,21 +96,35 @@
 }
 
 .dp-pre-btn:disabled {
-  background-image: url('../../assets/disable.ico');
-  background-repeat: no-repeat;
-  background-size: 28px 28px;
-  background-position: center;
+  opacity: 0.6;
 }
 
 .dp-pre-input {
-  font-family: NewsCycle-Regular;
+  font-family: 'vincente', serif;
   font-weight: bold;
   color: rgb(203, 138, 108);
   margin-right: 5px;
-  font-size: 16px;
-  line-height: 16px;
+  font-size: 28px;
   height: 40px;
   width: 40%;
+  padding: 0px 5px 0px 5px;
+  vertical-align: bottom;
+}
+
+.dp-pre-claim-container {
+  display: flex;
+  vertical-align: baseline;
+  margin-top: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.dp-pre-claim-label {
+  display: inline-block;
+  width: 40%;
+  margin-right: 5px;
+  text-align: left;
+  font-size: 18px;
 }
 
 .helper-conn-btn {
@@ -112,34 +150,6 @@
 }
 
 .progress-label {
-  padding-top: 5px;
-  font-family: VincAlt;
   font-size: 24px;
   width: 19.5%;
-}
-
-.tooltip {
-  z-index: 1;
-}
-
-.dp-pre-claim-container {
-  display: flex;
-  vertical-align: baseline;
-  margin-top: 40px;
-  align-items: center;
-  justify-content: center;
-}
-
-.dp-pre-claim-label {
-  display: inline-block;
-  width: 40%;
-  margin-right: 5px;
-  text-align: left;
-}
-
-.time-ticker {
-  font-family: 'Roboto Mono', monospace;
-  padding-top: 8px;
-  font-size: 28px;
-  font-weight: 400;
 }

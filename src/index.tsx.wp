@@ -1,0 +1,29 @@
+/*
+ * Copyright (C) 2020 wolves.finance developers
+ * This file is part of wolves.finance - https://github.com/peak3d/wolves.finance
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ * See LICENSE.txt for more information.
+ */
+
+import './index.css';
+import './assets/fonts/font_variants.css';
+
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import App from './App.wp';
+
+// @ts-expect-error: will be set in WP plugin
+const reactAppData = window.rpReactPlugin || {};
+const { appSelector } = reactAppData;
+const appAnchorElement = document.querySelector(appSelector);
+
+if (appAnchorElement) {
+  ReactDOM.render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+    appAnchorElement
+  );
+}

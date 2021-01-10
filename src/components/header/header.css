@@ -6,16 +6,15 @@
  * See the file LICENSES/README.md for more information.
  */
 
-@import '../../assets/fonts/fonts.css';
-
 .navbar-collapse {
   align-self: flex-end;
   margin-bottom: 12px;
 }
 
 .navbar-nav {
-  font-family: VincAlt;
   letter-spacing: 0.02em;
+  font-family: 'vincente', serif;
+  font-weight: bold;
 }
 
 .navbar-nav a {

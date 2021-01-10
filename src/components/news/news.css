@@ -24,22 +24,3 @@
   height: 230px;
   background-color: rgba(0, 0, 0, 0.5);
 }
-
-.ticker-text {
-  display: inline-block;
-  margin-top: 20px;
-  font-family: VincAlt;
-  letter-spacing: 0.02em;
-  font-size: 40px;
-  line-height: 40px;
-  color: black;
-}
-
-.time-ticker {
-  width: 316px;
-  height: 60px;
-  border: solid 1px white;
-  background-color: rgb(3, 32, 66);
-  display: table;
-  margin: 0 auto;
-}

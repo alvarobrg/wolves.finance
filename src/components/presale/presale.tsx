@@ -12,6 +12,7 @@ import React, { Component, ReactNode } from 'react';
 
 import DappHeader from '../../dapp/components/header/header';
 import DappForm from '../../dapp/components/presale/presale';
+import { TimeTicker } from '../timeticker';
 
 class PresaleForm extends DappForm {
   tickerHandle: number | undefined = undefined;
@@ -90,7 +91,7 @@ class PresaleForm extends DappForm {
           Or send ETH to our pre-sale contract:
           <br /> <b>{this._getPresaleContractAddress()}</b>
         </div>
-        <div className="progress-form">
+        <div className="tk-vincente-bold progress-form">
           <div
             className="progress-label"
             style={{ textAlign: 'right', paddingRight: '6px' }}
@@ -145,34 +146,21 @@ class Presale extends Component<unknown> {
 
   render(): ReactNode {
     return (
-      <div className="presale-main presale-column">
+      <div className="tk-aktiv-grotesk-condensed presale-main presale-column">
         <div className="helper-conn-btn" />
         <div className="presale-Info">
-          <span className="ticker-text" ref={this.textRef}>
-            PRE-SALE
-          </span>
-          <div className="time-ticker" ref={this.clockRef} />
+          <TimeTicker textRef={this.textRef} clockRef={this.clockRef} />
         </div>
         <DappHeader />
         <div className="presale-text-container presale-column">
-          <div className="presale-text presale-small">
-            3000 WOLF tokens on pre-sale -<br />
-            <b>
-              Round 1 - 1 ETH = 20 WOLF (~$30 / WOLF)
-              <br />
-              Market price to be set at ~$40 / WOLF
-              <br />
-              Pre-sale cap per wallet: 3 ETH / 60 WOLF
-            </b>
+          <div className="presale-text presale-text-top presale-small-top">
+          Presale will occur in 1 round with a current hard cap of 100ETH. There will be a maximum cap of 3ETH per wallet. Keep in touch through our Telegram and Discord channels linked in header
           </div>
-          <div className="presale-text presale-small">
-            Your WOLF token are initially <b>locked</b>. You can
-            <br />
-            <b>claim at any time</b>, but you loose the chance to
-            <br />
-            get the early adopter surprise if you do so
-            <br />
-            before our dapp has launched.
+          <div className="presale-text presale-text-width presale-small">
+          <b>The pre-sale, when it goes live, will run directly through our contract, integrated here, which will automatically lock 50% of all ETH sent to the contract ready for Uniswap Liquidity and will send the other 50% to our vested team wallet which will be used for marketing & development.</b>
+          </div>
+          <div className="presale-text presale-text-width presale-small">
+          <b>Bought tokens are locked in the contract until after the presale closes, at which point users can claim their tokens. Any remaining WOLF token not bought from the presale allocation of 3000, will be added to the rewards pool for public investors.</b>
           </div>
         </div>
         <PresaleForm />

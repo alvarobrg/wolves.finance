@@ -6,8 +6,6 @@
  * See the file LICENSES/README.md for more information.
  */
 
-@import '../../assets/fonts/fonts.css';
-
 .info-main {
   background-image: url(../../assets/banner_info.jpg);
   background-position: center;
@@ -25,7 +23,6 @@
 
 .info-title {
   display: block;
-  font-family: VincAlt;
   color: white;
 }
 
@@ -48,7 +45,6 @@
 .info-link,
 .info-link:hover {
   display: block;
-  font-family: NewsCycle-Regular;
   font-size: 12px;
   color: white;
   margin-top: 20px;
@@ -57,7 +53,6 @@
 .info-text {
   max-width: 900px;
   margin: 20px auto 20px auto;
-  font-family: NewsCycle-Regular;
   font-size: 18px;
   line-height: 20px;
   color: white;
