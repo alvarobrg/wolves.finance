@@ -2,7 +2,7 @@
   "name": "wolves.finance",
   "version": "1.0.0",
   "description": "DeFi meets gamification",
-  "homepage": "/blog/wp-content/plugins/presale/react-app/build",
+  "homepage": "https://wolvesofwallstreet.github.io",
   "license": "Apache-2.0",
   "engines": {
     "node": ">=14.0.0",

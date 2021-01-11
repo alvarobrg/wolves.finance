@@ -16,6 +16,12 @@
   flex-wrap: wrap;
 }
 
+.presale-info {
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
 .presale-text {
   text-align: center;
   font-size: 21px;
@@ -28,7 +34,7 @@
 
 .presale-text-top {
   width: 70%;
-  font-size: 22px;
+  font-size: 24px;
 }
 
 @media screen and (max-width: 750px) {
@@ -45,7 +51,7 @@
     font-size: 16px;
   }
   .presale-small-top {
-    font-size: 18px;
+    font-size: 20px;
   }
   .presale-smaller,
   .dp-pre-label {
@@ -69,18 +75,6 @@
   font-size: 18px;
 }
 
-.dp-conn-form {
-  margin-top: 20px;
-}
-
-.dp-conn-btn {
-  border: black 1px solid;
-  background-color: rgb(3, 32, 66);
-  color: rgb(203, 138, 108);
-  height: 40px;
-  width: 200px;
-}
-
 .dp-pre-form {
   margin-top: 32px;
   width: 100%;
@@ -88,8 +82,8 @@
 
 .dp-pre-btn {
   border: black 1px solid;
-  background-color: rgb(3, 32, 66);
-  color: rgb(203, 138, 108);
+  background-color: var(--wolves-blue-dk);
+  color: var(--wolves-orange);
   height: 40px;
   width: 20%;
   min-width: 60px;
@@ -102,7 +96,7 @@
 .dp-pre-input {
   font-family: 'vincente', serif;
   font-weight: bold;
-  color: rgb(203, 138, 108);
+  color: var(--wolves-orange);
   margin-right: 5px;
   font-size: 28px;
   height: 40px;
@@ -127,10 +121,6 @@
   font-size: 18px;
 }
 
-.helper-conn-btn {
-  width: 200px;
-}
-
 .progress-form {
   width: 100%;
   display: flex;
@@ -138,18 +128,19 @@
 }
 
 .progress-outer {
-  background-color: rgb(3, 32, 66);
+  background-color: var(--wolves-blue-dk);
   height: 40px;
-  width: 61%;
+  width: 60.5%;
   padding: 6px;
 }
 
 .progress-inner {
-  background-color: rgb(203, 138, 108);
+  background-color: var(--wolves-orange);
   height: 28px;
 }
 
 .progress-label {
   font-size: 24px;
-  width: 19.5%;
+  width: 19.75%;
+  color: var(--wolves-blue-dk);
 }

@@ -17,20 +17,20 @@ import twitter from '../../assets/icons_Twitter.svg';
 class Social extends Component {
   render(): ReactNode {
     return (
-      <div className="social_menu">
-        <a className="social_menu_btn" href="#twitter">
+      <div className="social-menu">
+        <a className="social-menu_btn" href="#twitter">
           <img src={twitter} alt="Twitter" width="24px" height="24px" />
         </a>
-        <a className="social_menu_btn" href="#ether">
+        <a className="social-menu_btn" href="#ether">
           <img src={etherscan} alt="Etherscan" width="24px" height="24px" />
         </a>
-        <a className="social_menu_btn" href="#github">
+        <a className="social-menu_btn" href="#github">
           <img src={github} alt="Github" width="24px" height="24px" />
         </a>
-        <a className="social_menu_btn" href="#discord">
+        <a className="social-menu_btn" href="#discord">
           <img src={discord} alt="Discord" width="24px" height="24px" />
         </a>
-        <a className="social_menu_btn" href="#telegram">
+        <a className="social-menu_btn" href="#telegram">
           <img src={telegram} alt="Telegram" width="24px" height="24px" />
         </a>
       </div>

@@ -11,12 +11,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 import React from 'react';
 
-import Header from './components/header/header';
-import HowTo from './components/howto/howto';
-import Info from './components/info/info';
-import News from './components/news/news';
-import Presale from './components/presale/presale';
-import { StoreContainer } from './dapp/stores/store';
+import { Footer } from './components/footer';
+import { Header } from './components/header';
+import { Presale } from './components/presale';
+import { StoreContainer } from './stores/store';
 
 class App extends React.Component {
   render(): JSX.Element {
@@ -24,10 +22,8 @@ class App extends React.Component {
       <div className="App">
         <StoreContainer>
           <Header />
-          <News />
-          <HowTo />
-          <Info />
           <Presale />
+          <Footer />
         </StoreContainer>
       </div>
     );

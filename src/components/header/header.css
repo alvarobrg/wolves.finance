@@ -6,11 +6,6 @@
  * See the file LICENSES/README.md for more information.
  */
 
-.navbar-collapse {
-  align-self: flex-end;
-  margin-bottom: 12px;
-}
-
 .navbar-nav {
   letter-spacing: 0.02em;
   font-family: 'vincente', serif;
@@ -25,29 +20,25 @@
   text-decoration: underline !important;
 }
 
-@media (max-width: 540px) {
-  .bg-wolf {
-    background-color: #162739 !important;
-    padding: 25px 8px 8px 8px;
-  }
-  .logo {
-    width: 260px;
-  }
+.logo {
+  margin-left: 20px;
+  width: 250px;
 }
 
-@media (min-width: 541px) {
-  .bg-wolf {
-    background-color: #162739 !important;
-    padding: 20px 8px 8px 8px;
-  }
+.bg-wolf {
+  background-color: var(--wolves-blue-dk) !important;
+  padding: 16px 8px 16px 8px;
 }
 
-.social_menu {
-  position: absolute;
-  top: 4px;
-  right: 6px;
+.dp-conn-form {
+  margin-left: auto;
+  margin-right: 20px;
 }
 
-.social_menu_btn {
-  margin-right: 6px;
+.dp-conn-btn {
+  border: white 1px solid;
+  background-color: var(--wolves-orange);
+  color: var(--wolves-blue-dk);
+  height: 40px;
+  width: 200px;
 }
