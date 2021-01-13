@@ -13,7 +13,7 @@ import React from 'react';
 
 import { Footer } from './components/footer';
 import { Header } from './components/header';
-import { Presale } from './components/presale';
+import Presale from './components/presale';
 import { StoreContainer } from './stores/store';
 
 class App extends React.Component {

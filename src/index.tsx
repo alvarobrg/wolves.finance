@@ -6,6 +6,7 @@
  * See LICENSE.txt for more information.
  */
 
+import './i18n';
 import './index.css';
 import 'assets/fonts/wp_fonts.css';
 import 'assets/fonts/font_variants.css';

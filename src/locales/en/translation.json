@@ -1,0 +1,6 @@
+{
+  "presale.unknown": "PRESALE",
+  "presale.notOpen": "PRESALE COUNTDOWN IS ON",
+  "presale.live": "PRESALE IS LIVE NOW",
+  "presale.closed": "PRESALE IS OVER"
+}

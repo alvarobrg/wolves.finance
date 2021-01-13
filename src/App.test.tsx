@@ -8,10 +8,13 @@
 
 import { render, screen } from '@testing-library/react';
 
+// Import the withTranslation-less export
 import { Presale } from './components/presale';
 
 test('renders presale WOLF', () => {
-  render(<Presale />);
+  //display key value instead translation for tests
+  render(<Presale t={(key: string) => key} />);
+
   const titleElement = screen.getByText('SEND');
   expect(titleElement).toBeInTheDocument();
 });

@@ -11,6 +11,7 @@ import './timeticker.css';
 import React, { Component, ReactNode } from 'react';
 
 type TimeTickerProps = {
+  value: string;
   textRef: React.RefObject<HTMLSpanElement>;
   clockRef: React.RefObject<HTMLDivElement>;
 };
@@ -20,7 +21,7 @@ class TimeTicker extends Component<TimeTickerProps> {
     return (
       <>
         <span className="tk-vincente-bold ticker-text" ref={this.props.textRef}>
-          PRE-SALE
+          {this.props.value}
         </span>
         <div
           className="tk-grotesk-bold time-ticker"

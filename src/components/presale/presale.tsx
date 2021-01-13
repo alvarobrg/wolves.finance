@@ -8,6 +8,7 @@
 import './presale.css';
 
 import React, { Component, createRef, ReactNode } from 'react';
+import { TFunction, withTranslation } from 'react-i18next';
 
 import {
   CONNECTION_CHANGED,
@@ -23,7 +24,11 @@ import {
 } from '../../stores/store';
 import { TimeTicker } from '../timeticker';
 
-interface CSTATE {
+type PRESALEPROPS = {
+  t: TFunction;
+};
+
+type PRESALESTATE = {
   connected: boolean;
   waiting: boolean;
   inputValid: boolean;
@@ -35,9 +40,9 @@ interface CSTATE {
   ethInvested: number;
   tokenUser: number;
   tokenLocked: number;
-}
+};
 
-const INITIALSTATE: CSTATE = {
+const INITIALSTATE: PRESALESTATE = {
   connected: false,
   waiting: false,
   inputValid: false,
@@ -70,7 +75,7 @@ const FAILURESTATE = {
   tokenLocked: 0,
 };
 
-class Presale extends Component<unknown, CSTATE> {
+class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   emitter = StoreClasses.emitter;
   dispatcher = StoreClasses.dispatcher;
   static readonly defaultEthValue = '0 ETH';
@@ -82,7 +87,7 @@ class Presale extends Component<unknown, CSTATE> {
   timeoutHandle: NodeJS.Timeout | undefined = undefined;
   tickerHandle: number | undefined = undefined;
 
-  constructor(props: unknown) {
+  constructor(props: PRESALEPROPS) {
     super(props);
     this.state = { ...INITIALSTATE };
 
@@ -240,15 +245,15 @@ class Presale extends Component<unknown, CSTATE> {
     }
     if (timeToNextEvent)
       this.timeoutHandle = setTimeout(this.onTimeout, timeToNextEvent * 1000);
-
+    const { t } = this.props;
     window.dispatchEvent(
       new CustomEvent('PRESALE_TICKER', {
         detail: {
           text: isOpen
-            ? 'PRE-SALE IS LIVE NOW'
+            ? t('presale.notOpen')
             : hasClosed
-            ? 'PRE-SALE IS OVER'
-            : 'PRE-SALE COUNTDOWN IS ON',
+            ? t('presale.closed')
+            : t('presale.live'),
           isOpen: isOpen,
         },
       })
@@ -290,10 +295,16 @@ class Presale extends Component<unknown, CSTATE> {
       3.0 - this.state.ethInvested
     );
 
+    const { t } = this.props;
+
     return (
       <div className="tk-aktiv-grotesk-condensed presale-main presale-column">
         <div className="presale-info">
-          <TimeTicker textRef={this.textRef} clockRef={this.clockRef} />
+          <TimeTicker
+            value={t('presale.unknown')}
+            textRef={this.textRef}
+            clockRef={this.clockRef}
+          />
         </div>
         <div className="presale-text-container presale-column">
           <div className="presale-text presale-text-top presale-small-top">
@@ -401,4 +412,6 @@ class Presale extends Component<unknown, CSTATE> {
   }
 }
 
+export default withTranslation()(Presale);
+// for testing export without hook
 export { Presale };
