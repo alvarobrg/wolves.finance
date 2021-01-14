@@ -16,7 +16,7 @@ import Dispatcher from 'flux';
 import React from 'react';
 import Web3Modal from 'web3modal';
 
-import { addresses } from '../config/adresses';
+import { addresses } from '../config/addresses';
 import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
