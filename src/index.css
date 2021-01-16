@@ -27,4 +27,6 @@ code {
 :root {
   --wolves-blue-dk: #032042;
   --wolves-orange: #cc8a6d;
+  -webkit-text-size-adjust: initial;
+  --primary-color: #032042;
 }

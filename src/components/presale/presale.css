@@ -10,10 +10,7 @@
   background-image: url(../../assets/banner_presale.jpg);
   background-position: center;
   background-size: cover;
-  padding: 0px 2% 50px 2%;
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
+  padding: 0px 8% 50px 8%;
 }
 
 .presale-info {
@@ -22,87 +19,168 @@
   width: 100%;
 }
 
-.presale-text {
-  text-align: center;
-  font-size: 21px;
-  margin: 0px auto 20px auto;
+.progress-form {
+  width: 100%;
+  display: flex;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  align-items: center;
 }
 
-.presale-text-width {
-  width: 46%;
+.progress-outer {
+  background-color: var(--wolves-blue-dk);
+  height: 40px;
+  width: 66%;
+  padding: 6px;
 }
 
-.presale-text-top {
-  width: 70%;
+.progress-inner {
+  background-color: var(--wolves-orange);
+  height: 28px;
+}
+
+.progress-label {
   font-size: 24px;
+  width: 17%;
+  color: var(--wolves-blue-dk);
 }
 
-@media screen and (max-width: 750px) {
-  .presale-column {
+.presale-content-container {
+  width: 100%;
+  display: flex;
+}
+
+.presale-content {
+  border: 2px groove lightgray;
+  padding: 10px 2% 10px 2%;
+  flex: 1;
+}
+
+/******* Left Container ******/
+
+.presale-content-left {
+  background-color: var(--wolves-blue-dk);
+  text-align: left;
+  opacity: 0.75;
+  color: white;
+  margin-right: 2%;
+  font-size: 34px;
+}
+
+.presale-content-left h1 {
+  font-size: 1em;
+}
+
+.presale-content-left h2 {
+  font-size: 0.8235294117647059em;
+  margin-bottom: 0px;
+}
+
+.presale-content-left h3 {
+  font-size: 0.6470588235294118em;
+}
+
+.presale-content-left table {
+  font-size: 12px;
+}
+
+.presale-content-left td:nth-child(1) {
+  background-image: url(assets/circle_orange.svg);
+  background-repeat: no-repeat;
+  background-size: 8px;
+  background-position-y: 6px;
+  padding-right: 20px;
+}
+
+.presale-content-left hr {
+  background-color: white;
+}
+
+.social-menu {
+  display: flex;
+  justify-content: space-evenly;
+  width: 180px;
+}
+
+.social-menu-btn {
+  font-size: initial;
+}
+
+/******* Right Container ******/
+
+.presale-content-right {
+  color: var(--wolves-blue-dk);
+}
+
+.pcr-form {
+  text-align: left;
+}
+
+.pcr-form td {
+  padding: 3px 1px;
+}
+
+.pcr-label {
+  margin-left: 10px;
+  margin-bottom: 0px;
+  font-size: 10px;
+}
+
+.pcr-input-label {
+  font-size: 13px;
+}
+
+.pcr-input-container {
+  position: relative;
+  font-size: 20px;
+}
+
+.pcr-input {
+  margin-right: 5px;
+  height: 32px;
+  width: 100%;
+  padding: 0px 50px 0px 5px;
+  vertical-align: bottom;
+}
+
+.pcr-input-failure {
+  border: 1px solid red;
+}
+
+.pcr-input-currency {
+  position: absolute;
+  color: lightgray;
+  top: 2px;
+  right: 4px;
+}
+
+.pcr-btn {
+  border: black 1px solid;
+  background-color: var(--wolves-orange);
+  height: 32px;
+  width: 100%;
+}
+
+.pcr-btn:disabled {
+  color: var(--wolves-orange);
+  background-color: var(--wolves-blue-dk);
+  opacity: 0.5;
+}
+
+@media all and (max-width: 850px) {
+  .presale-content-container {
     flex-direction: column;
   }
-  .presale-text-width {
-    width: 90%;
+  .presale-content-left {
+    margin-right: 0px;
+    margin-bottom: 2%;
   }
 }
 
 @media screen and (max-width: 400px) {
-  .presale-small {
-    font-size: 16px;
+  .presale-content-left {
+    font-size: 30px;
   }
-  .presale-small-top {
-    font-size: 20px;
-  }
-  .presale-smaller,
-  .dp-pre-label {
-    font-size: 12px;
-  }
-}
-
-.presale-text-container {
-  margin-top: 40px;
-  display: flex;
-  justify-content: space-evenly;
-  align-items: flex-start;
-  flex-basis: 100%;
-  flex-wrap: wrap;
-}
-
-.dp-pre-label {
-  display: inline-block;
-  width: calc(60% + 5px);
-  text-align: left;
-  font-size: 18px;
-}
-
-.dp-pre-form {
-  margin-top: 32px;
-  width: 100%;
-}
-
-.dp-pre-btn {
-  border: black 1px solid;
-  background-color: var(--wolves-blue-dk);
-  color: var(--wolves-orange);
-  height: 40px;
-  width: 20%;
-  min-width: 60px;
-}
-
-.dp-pre-btn:disabled {
-  opacity: 0.6;
-}
-
-.dp-pre-input {
-  font-family: 'vincente', serif;
-  font-weight: bold;
-  color: var(--wolves-orange);
-  margin-right: 5px;
-  font-size: 28px;
-  height: 40px;
-  width: 40%;
-  padding: 0px 5px 0px 5px;
-  vertical-align: bottom;
 }
 
 .dp-pre-claim-container {
@@ -119,28 +197,4 @@
   margin-right: 5px;
   text-align: left;
   font-size: 18px;
-}
-
-.progress-form {
-  width: 100%;
-  display: flex;
-  margin-top: 20px;
-}
-
-.progress-outer {
-  background-color: var(--wolves-blue-dk);
-  height: 40px;
-  width: 60.5%;
-  padding: 6px;
-}
-
-.progress-inner {
-  background-color: var(--wolves-orange);
-  height: 28px;
-}
-
-.progress-label {
-  font-size: 24px;
-  width: 19.75%;
-  color: var(--wolves-blue-dk);
 }

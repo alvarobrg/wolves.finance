@@ -16,3 +16,13 @@
   font-weight: bold;
   line-height: 1.4;
 }
+
+.tk-grotesk-lightbold {
+  font-family: 'aktiv-grotesk-condensed';
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.font24 {
+  font-size: 24px;
+}

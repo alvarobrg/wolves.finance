@@ -9,8 +9,6 @@ import './footer.css';
 
 import React, { Component, ReactNode } from 'react';
 
-import Social from './social';
-
 class Footer extends Component<unknown> {
   render(): ReactNode {
     return (
@@ -24,7 +22,6 @@ class Footer extends Component<unknown> {
           <br />
           COPYRIGHT ALL RIGHTS RESERVED WOLVES OF WALL STREET 2021
         </p>
-        <Social />
       </div>
     );
   }

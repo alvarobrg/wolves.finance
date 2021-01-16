@@ -62,7 +62,9 @@ export type PresaleResult = {
     isOpen: boolean;
     timeToNextEvent: number;
     ethUser: number;
+    ethInvested: number;
     tokenUser: number;
+    tokenLocked: number;
   };
 };
 

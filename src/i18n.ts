@@ -2,8 +2,8 @@ import i18n from 'i18next';
 import detector from 'i18next-browser-languagedetector';
 import { initReactI18next } from 'react-i18next';
 
-import translationEN from './locales/en/translation.json';
-import translationZH from './locales/zh/translation.json';
+import translationEN from './locales/en_US/translation.json';
+import translationZH from './locales/zh_CN/translation.json';
 
 // the translations
 const resources = {
@@ -22,8 +22,6 @@ i18n
     resources,
     lng: 'en',
     fallbackLng: 'en',
-
-    keySeparator: false, // we do not use keys in form messages.welcome
 
     interpolation: {
       escapeValue: false, // react already safes from xss
