@@ -11,6 +11,13 @@
 }
 
 .footer-notes {
-  padding-top: 10px;
+  padding: 10px 10px 0px 10px;
   color: white;
+  font-size: 16px;
+}
+
+@media screen and (max-width: 450px) {
+  .footer-notes {
+    font-size: 14px;
+  }
 }

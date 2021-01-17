@@ -9,6 +9,7 @@ import './presale.css';
 
 import React, { Component, createRef, ReactNode } from 'react';
 import { Clipboard } from 'react-bootstrap-icons';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { TFunction, withTranslation } from 'react-i18next';
 
 import WolfToken from '../../assets/wolves-token_233.png';
@@ -35,6 +36,7 @@ type PRESALESTATE = {
   connected: boolean;
   waiting: boolean;
   inputValid: boolean;
+  termsChecked: boolean;
   ethRaised: number;
   hasClosed: boolean;
   isOpen: boolean;
@@ -49,6 +51,7 @@ const INITIALSTATE: PRESALESTATE = {
   connected: false,
   waiting: false,
   inputValid: false,
+  termsChecked: false,
   ethRaised: 0,
   hasClosed: true,
   isOpen: false,
@@ -88,6 +91,8 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   clockRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<HTMLInputElement> = createRef();
   buttonRef: HTMLInputElement | null = null;
+  checkRef: HTMLInputElement | null = null;
+
   timeoutHandle: NodeJS.Timeout | undefined = undefined;
   tickerHandle: number | undefined = undefined;
 
@@ -189,7 +194,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     this.setState({ waiting: false });
     if (params['error'] === undefined && this.inputRef.current) {
       this.inputRef.current.value = Presale.defaultEthValue;
-      this.setState({ inputValid: false });
+      this._updateInvestLimits(this.state.ethUser, this.state.ethInvested);
     }
   }
 
@@ -256,11 +261,11 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     window.dispatchEvent(
       new CustomEvent('PRESALE_TICKER', {
         detail: {
-          text: isOpen
-            ? t('presale.notOpen')
-            : hasClosed
+          text: hasClosed
             ? t('presale.closed')
-            : t('presale.live'),
+            : isOpen
+            ? t('presale.live')
+            : t('presale.notOpen'),
           footer: isOpen
             ? t('presale.timeUntilClose')
             : hasClosed
@@ -320,12 +325,14 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     const disabled =
       !(this.state.isOpen && this.state.connected) ||
       this.state.waiting ||
-      !this.state.inputValid;
+      !this.state.inputValid ||
+      !this.state.termsChecked;
 
     const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
     const failureClass = this.state.inputValid ? '' : ' pcr-input-failure';
 
     const { t } = this.props;
+
     return (
       <div className="tk-vincente-bold presale-main presale-column">
         <div className="presale-info">
@@ -375,7 +382,15 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                     {t('presale.contract')}
                     <br />
                     {this._getPresaleContractAddress()}&nbsp;&nbsp;
-                    <Clipboard style={{ marginBottom: '2px' }} />
+                    <CopyToClipboard text={this._getPresaleContractAddress()}>
+                      <Clipboard
+                        style={{
+                          color: 'var(--wolves-orange)',
+                          cursor: 'pointer',
+                          marginBottom: '2px',
+                        }}
+                      />
+                    </CopyToClipboard>
                   </td>
                 </tr>
                 <tr>
@@ -412,7 +427,15 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                 <tbody>
                   <tr>
                     <td style={{ width: '16px' }}>
-                      <input id="terms" type="checkbox" />
+                      <input
+                        onChange={(e) =>
+                          this.setState({
+                            termsChecked: e.currentTarget.checked,
+                          })
+                        }
+                        id="terms"
+                        type="checkbox"
+                      />
                     </td>
                     <td colSpan={2}>
                       <label className="pcr-label" htmlFor="terms">

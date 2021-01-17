@@ -15,14 +15,18 @@ const resources = {
   },
 };
 
+const options = {
+  order: ['path', 'navigator'],
+};
+
 i18n
   .use(detector)
   .use(initReactI18next) // passes i18n down to react-i18next
   .init({
     resources,
-    lng: 'en',
+    detection: options,
+    supportedLngs: ['en', 'zh'],
     fallbackLng: 'en',
-
     interpolation: {
       escapeValue: false, // react already safes from xss
     },

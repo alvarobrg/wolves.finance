@@ -18,7 +18,7 @@
     "limits": "Purchase Min: 0.2 ETH - Max: 3 ETH",
     "followUs": "FOLLOW US HERE",
     "terms": "PLEASE ACKNOWLEDGE YOU HAVE READ TERMS & CONDITIONS HERE AND ARE IN AGREEMENT. ALL LIABILITY RESIDES WITH THE USER. RISK ONLY WHAT YOU ARE WILLING TO LOOSE",
-    "purchase": "Purchase Min {{min}} ETH - Max {{max}} ETH",
+    "purchase": "Purchase: Min {{min}} ETH - Max {{max}} ETH",
     "claim": "CLAIM",
     "buy": "BUY {{num}} WOLF",
     "tokenLocked": "token locked"

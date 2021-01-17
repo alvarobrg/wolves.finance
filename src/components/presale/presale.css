@@ -64,7 +64,7 @@
   opacity: 0.75;
   color: white;
   margin-right: 2%;
-  font-size: 34px;
+  font-size: 38px;
 }
 
 .presale-content-left h1 {
@@ -81,7 +81,7 @@
 }
 
 .presale-content-left table {
-  font-size: 12px;
+  font-size: 14px;
 }
 
 .presale-content-left td:nth-child(1) {
@@ -89,7 +89,7 @@
   background-repeat: no-repeat;
   background-size: 8px;
   background-position-y: 6px;
-  padding-right: 20px;
+  padding-right: 12px;
 }
 
 .presale-content-left hr {
@@ -123,7 +123,7 @@
 .pcr-label {
   margin-left: 10px;
   margin-bottom: 0px;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .pcr-input-label {
@@ -167,7 +167,7 @@
   opacity: 0.5;
 }
 
-@media all and (max-width: 850px) {
+@media all and (max-width: 920px) {
   .presale-content-container {
     flex-direction: column;
   }
@@ -177,24 +177,11 @@
   }
 }
 
-@media screen and (max-width: 400px) {
-  .presale-content-left {
-    font-size: 30px;
+@media screen and (max-width: 450px) {
+  .presale-main {
+    padding: 0px 2% 50px 2%;
   }
-}
-
-.dp-pre-claim-container {
-  display: flex;
-  vertical-align: baseline;
-  margin-top: 40px;
-  align-items: center;
-  justify-content: center;
-}
-
-.dp-pre-claim-label {
-  display: inline-block;
-  width: 40%;
-  margin-right: 5px;
-  text-align: left;
-  font-size: 18px;
+  .presale-content-left {
+    font-size: 34px;
+  }
 }
