@@ -102,8 +102,8 @@ contract Crowdsale is Context, ReentrancyGuard {
 
   // our target is providing 1125 WOLF + 75ETH initially
   // into the UNISwapv2 liquidity pool
-  uint256 private constant _tokenForLp = 1125;
-  uint256 private constant _ethForLp = 75;
+  uint256 private constant _tokenForLp = 11250;
+  uint256 private constant _ethForLp = 375;
 
   /**
    * @dev Reverts if not in crowdsale time range.
