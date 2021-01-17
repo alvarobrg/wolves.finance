@@ -84,7 +84,6 @@ const FAILURESTATE = {
 class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   emitter = StoreClasses.emitter;
   dispatcher = StoreClasses.dispatcher;
-  static readonly defaultEthValue = '0.2';
 
   textRef: React.RefObject<HTMLSpanElement> = React.createRef();
   footerRef: React.RefObject<HTMLSpanElement> = React.createRef();
@@ -96,14 +95,17 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   timeoutHandle: NodeJS.Timeout | undefined = undefined;
   tickerHandle: number | undefined = undefined;
 
-  investLimit = { min: 0.2, max: 3 };
+  static readonly EthMin = 0.2;
+  static readonly EthMax = 3;
+  static readonly defaultEthValue = Presale.EthMin.toString();
+
+  investLimit = { min: Presale.EthMin, max: Presale.EthMax };
 
   constructor(props: PRESALEPROPS) {
     super(props);
     this.state = { ...INITIALSTATE };
 
     this.handleOnBlur = this.handleOnBlur.bind(this);
-    this.handleOnFocus = this.handleOnFocus.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.handleClaim = this.handleClaim.bind(this);
@@ -153,6 +155,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
         params.state.timeToNextEvent
       );
     } else {
+      this._updateInvestLimits(0, 0);
       this.setState(FAILURESTATE);
       this._manageTimers(false, true, 0);
     }
@@ -215,10 +218,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       .replace(/[^0-9,.]/gi, '')
       .replace(',', '.');
     this._validateInput(event.target.value);
-  }
-
-  handleOnFocus(event: React.FocusEvent<HTMLInputElement>): void {
-    if (event.target.value === Presale.defaultEthValue) event.target.value = '';
   }
 
   handleOnBlur(event: React.FocusEvent<HTMLInputElement>): void {
@@ -464,7 +463,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                           autoComplete="off"
                           className={'pcr-input' + failureClass}
                           onChange={this.handleOnChange}
-                          onFocus={this.handleOnFocus}
                           onBlur={this.handleOnBlur}
                         />
                         <div className="pcr-input-currency">ETH</div>
