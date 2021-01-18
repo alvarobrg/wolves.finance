@@ -4,7 +4,7 @@
   "presale": {
     "id": "PRE-SALE",
     "unknown": "THE $t(presale.id)",
-    "notOpen": "THE $t(presale.id) COUNTDOWN IS ON",
+    "notOpen": "THE $t(presale.id) WILL START SOON",
     "live": "THE $t(presale.id) IS LIVE NOW",
     "closed": "THE $t(presale.id) IS OVER",
     "timeUntilOpen": "$t(presale.id) COUNTDOWN TO OPEN",
@@ -21,6 +21,7 @@
     "purchase": "Purchase: Min {{min}} ETH - Max {{max}} ETH",
     "claim": "CLAIM",
     "buy": "BUY {{num}} WOLF",
+    "buyIn": "BUY {{num}} WOLF in {{time}}",
     "tokenLocked": "token locked"
   }
 }

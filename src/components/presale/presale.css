@@ -10,7 +10,8 @@
   background-image: url(../../assets/banner_presale.jpg);
   background-position: center;
   background-size: cover;
-  padding: 0px 8% 50px 8%;
+  padding: 0px 8% 30px 8%;
+  color: var(--wolves-blue-dk);
 }
 
 .presale-info {
@@ -40,9 +41,10 @@
 }
 
 .progress-label {
-  font-size: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.1;
   width: 17%;
-  color: var(--wolves-blue-dk);
 }
 
 .presale-content-container {
@@ -80,6 +82,13 @@
   font-size: 0.6470588235294118em;
 }
 
+.presale-content-left h1,
+h2,
+h3 {
+  font-family: 'vincente', serif;
+  font-weight: bold;
+}
+
 .presale-content-left table {
   font-size: 14px;
 }
@@ -107,10 +116,6 @@
 }
 
 /******* Right Container ******/
-
-.presale-content-right {
-  color: var(--wolves-blue-dk);
-}
 
 .pcr-form {
   text-align: left;
@@ -149,7 +154,6 @@
 
 .pcr-input-currency {
   position: absolute;
-  color: gray;
   top: 2px;
   right: 4px;
 }
@@ -179,7 +183,7 @@
 
 @media screen and (max-width: 450px) {
   .presale-main {
-    padding: 0px 2% 50px 2%;
+    padding: 0px 2% 30px 2%;
   }
   .presale-content-left {
     font-size: 34px;

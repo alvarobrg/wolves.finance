@@ -86,7 +86,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   dispatcher = StoreClasses.dispatcher;
 
   textRef: React.RefObject<HTMLSpanElement> = React.createRef();
-  footerRef: React.RefObject<HTMLSpanElement> = React.createRef();
   clockRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<HTMLInputElement> = createRef();
   buttonRef: HTMLInputElement | null = null;
@@ -234,14 +233,15 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
   handleTickEvent(event: Event): void {
     const detail = (event as CustomEvent).detail;
-    if (detail.time && this.clockRef.current)
+    if (detail.time && this.clockRef.current) {
       this.clockRef.current.innerHTML = detail.time;
-    else if (detail.text && this.textRef.current) {
+      if (this.buttonRef && !this.state.hasClosed && !this.state.isOpen) {
+        this.buttonRef.value = this._getButtonText(detail.time);
+      }
+    } else if (detail.text && this.textRef.current) {
       this.textRef.current.innerHTML = detail.text;
       if (this.clockRef.current)
         this.clockRef.current.style.color = detail.isOpen ? 'lime' : 'red';
-      if (detail.footer && this.footerRef.current)
-        this.footerRef.current.innerHTML = detail.footer;
     }
   }
 
@@ -265,11 +265,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
             : isOpen
             ? t('presale.live')
             : t('presale.notOpen'),
-          footer: isOpen
-            ? t('presale.timeUntilClose')
-            : hasClosed
-            ? ''
-            : t('presale.timeUntilOpen'),
           isOpen: isOpen,
         },
       })
@@ -315,6 +310,16 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     });
   }
 
+  _getButtonText(time: string | undefined): string {
+    const { t } = this.props;
+    return this.state.hasClosed
+      ? t('presale.closed').toString()
+      : t(time && !this.state.isOpen ? 'presale.buyIn' : 'presale.buy', {
+          num: this._calculateWOLF(this.inputRef.current?.value),
+          time: time,
+        }).toString();
+  }
+
   onButtonRefChanged(ref: HTMLInputElement): void {
     this.buttonRef = ref;
     this.forceUpdate();
@@ -333,15 +338,13 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     const { t } = this.props;
 
     return (
-      <div className="tk-vincente-bold presale-main presale-column">
+      <div className="tk-grotesk-lightbold presale-main">
         <div className="presale-info">
           <TimeTicker
             value={t('presale.unknown')}
             description={t('presale.description')}
-            footer=""
             textRef={this.textRef}
             clockRef={this.clockRef}
-            footerRef={this.footerRef}
           />
         </div>
         <div className="progress-form">
@@ -373,7 +376,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
             <h3>
               75 ETH {t('presale.target')} - 3000 WOLF {t('presale.available')}
             </h3>
-            <table className="tk-grotesk-lightbold">
+            <table>
               <tbody>
                 <tr>
                   <td />
@@ -417,11 +420,8 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
           <div className="presale-content presale-content-right">
             <img alt={WolfToken} src={WolfToken} width="50px" />
             <br />
-            <span className="font24">WOLF {t('token')}</span>
-            <form
-              className="tk-grotesk-lightbold pcr-form"
-              onSubmit={this.handleSubmit}
-            >
+            <span className="tk-vincente-bold font24">WOLF {t('token')}</span>
+            <form className="pcr-form" onSubmit={this.handleSubmit}>
               <table>
                 <tbody>
                   <tr>
@@ -474,11 +474,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                       <input
                         className="pcr-btn"
                         type="submit"
-                        value={t('presale.buy', {
-                          num: this._calculateWOLF(
-                            this.inputRef.current?.value
-                          ),
-                        }).toString()}
+                        value={this._getButtonText(undefined)}
                         disabled={disabled}
                         ref={this.onButtonRefChanged}
                       />

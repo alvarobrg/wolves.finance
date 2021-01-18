@@ -15,6 +15,6 @@ test('renders presale WOLF', () => {
   //display key value instead translation for tests
   render(<Presale t={(key: string) => key} />);
 
-  const titleElement = screen.getByText('presale.buy');
+  const titleElement = screen.getByText('presale.id', { exact: false });
   expect(titleElement).toBeInTheDocument();
 });
