@@ -9,7 +9,7 @@
 import { render, screen } from '@testing-library/react';
 
 // Import the withTranslation-less export
-import { Presale } from './components/presale';
+import { Presale } from '../components/presale';
 
 test('renders presale WOLF', () => {
   //display key value instead translation for tests
