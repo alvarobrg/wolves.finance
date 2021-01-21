@@ -7,20 +7,17 @@
  */
 
 .footer-main {
-  min-height: 50px;
   background-color: var(--wolves-blue-dk);
 }
 
-.social-menu {
-  padding: 0px 0px 10px 0px;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  justify-content: space-evenly;
-  width: 180px;
+.footer-notes {
+  padding: 10px 10px 10px 10px;
+  color: white;
+  font-size: 12px;
 }
 
-.footer-notes {
-  padding-top: 10px;
-  color: white;
+@media screen and (max-width: 450px) {
+  .footer-notes {
+    font-size: 10px;
+  }
 }

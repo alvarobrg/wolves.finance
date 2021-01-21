@@ -39,6 +39,7 @@
   border: white 1px solid;
   background-color: var(--wolves-orange);
   color: var(--wolves-blue-dk);
+  margin: 8px 0px 8px 0px;
   height: 40px;
   width: 200px;
 }

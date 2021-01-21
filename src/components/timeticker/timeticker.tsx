@@ -12,6 +12,7 @@ import React, { Component, ReactNode } from 'react';
 
 type TimeTickerProps = {
   value: string;
+  description: string;
   textRef: React.RefObject<HTMLSpanElement>;
   clockRef: React.RefObject<HTMLDivElement>;
 };
@@ -19,15 +20,14 @@ type TimeTickerProps = {
 class TimeTicker extends Component<TimeTickerProps> {
   render(): ReactNode {
     return (
-      <>
+      <div className="ticker-container">
         <span className="tk-vincente-bold ticker-text" ref={this.props.textRef}>
           {this.props.value}
         </span>
-        <div
-          className="tk-grotesk-bold time-ticker"
-          ref={this.props.clockRef}
-        />
-      </>
+        <br />
+        <span className="ticker-description">{this.props.description}</span>
+        <div className="time-ticker" ref={this.props.clockRef} />
+      </div>
     );
   }
 }

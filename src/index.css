@@ -15,6 +15,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* disable chrome font boost */
+p,
+h1,
+h2,
+h3,
+label {
+  max-height: 1000000px;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
@@ -27,4 +36,5 @@ code {
 :root {
   --wolves-blue-dk: #032042;
   --wolves-orange: #cc8a6d;
+  --primary-color: #032042;
 }

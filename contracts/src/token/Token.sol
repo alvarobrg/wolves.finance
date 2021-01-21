@@ -25,7 +25,7 @@ contract WolfToken is ERC20Capped, AccessControl {
    * @dev The ERC 20 token symbol used as an abbreviation of the token, such
    * as BTC, ETH, AUG or SJCX.
    */
-  string private constant TOKEN_SYMBOL = 'WOW';
+  string private constant TOKEN_SYMBOL = 'WOLF';
 
   /**
    * @dev The number of decimal places to which the token will be calculated.
@@ -49,12 +49,12 @@ contract WolfToken is ERC20Capped, AccessControl {
     IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
   address public immutable _uniV2Pair;
+  bytes32 public immutable _uniV2PairCodeHash;
 
   /**
-   * @dev If true, this pair is blocked
+   * @dev If false, this pair is blocked
    */
-  mapping(address => bool) _uniV2Blacklist;
-  uint256 _uniV2PairsScanned = _uniV2Factory.allPairsLength();
+  mapping(address => bool) _uniV2Whitelist;
 
   /**
    * @dev Construct a token instance
@@ -82,8 +82,14 @@ contract WolfToken is ERC20Capped, AccessControl {
 
     // Create the UniV2 liquidity pool
     address weth = _uniV2Router.WETH();
-    _uniV2Pair = _uniV2Factory.createPair(address(this), weth);
-    _updateUniV2Blacklist();
+    address uniV2Pair = _uniV2Factory.createPair(address(this), weth);
+    _uniV2Pair = uniV2Pair;
+    // Retrieve the code hash of UniV2 pair which is same for all other univ2 pairs
+    bytes32 codeHash;
+    assembly {
+      codeHash := extcodehash(uniV2Pair)
+    }
+    _uniV2PairCodeHash = codeHash;
   }
 
   /**
@@ -104,17 +110,17 @@ contract WolfToken is ERC20Capped, AccessControl {
   }
 
   /**
-   * @dev Remove ETH/WOLF univ2 pair address from blacklist
+   * @dev Add ETH/WOLF univ2 pair address to whitelist
    *
    * @param enable True to enable the univ2 pair, false to disable
    */
   function enableUniV2Pair(bool enable) external {
     require(hasRole(MINTER_ROLE, msg.sender));
-    _uniV2Blacklist[_uniV2Pair] = !enable;
+    _uniV2Whitelist[_uniV2Pair] = enable;
   }
 
   /**
-   * @dev Remove univ2 pair address from blacklist
+   * @dev Add univ2 pair address to whitelist
    *
    * @param pairAddress The address of the univ2 pair
    */
@@ -123,15 +129,15 @@ contract WolfToken is ERC20Capped, AccessControl {
       hasRole(MINTER_ROLE, msg.sender) ||
         hasRole(DEFAULT_ADMIN_ROLE, msg.sender)
     );
-    _uniV2Blacklist[pairAddress] = false;
+    _uniV2Whitelist[pairAddress] = true;
   }
 
   /**
-   * @dev Add univ2 pair address to blacklist
+   * @dev Remove univ2 pair address from whitelist
    */
   function disableUniV2Pair(address pairAddress) external {
     require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender));
-    _uniV2Blacklist[pairAddress] = true;
+    _uniV2Whitelist[pairAddress] = false;
   }
 
   /**
@@ -142,7 +148,7 @@ contract WolfToken is ERC20Capped, AccessControl {
     view
     returns (bool)
   {
-    return !_uniV2Blacklist[pairAddress];
+    return _uniV2Whitelist[pairAddress];
   }
 
   /**
@@ -154,35 +160,29 @@ contract WolfToken is ERC20Capped, AccessControl {
     uint256 amount
   ) internal override {
     // Minters are always allowed to transfer
-    _updateUniV2Blacklist();
     require(
-      hasRole(MINTER_ROLE, sender) || !_uniV2Blacklist[recipient],
+      hasRole(MINTER_ROLE, sender) || _checkForUniV2Pair(recipient),
       'forbidden'
     );
     super._transfer(sender, recipient, amount);
   }
 
   /**
-   * Update _uniV2Blacklist by scanning all new pairs listed in UniswapV2,
-   * and blacklist all WOLF related pairs by default.
+   * Check if recipient is either on the whitelist, or not an UniV2 pair.
    * Only minter and admin role are allowed to enable initial blacklisted
    * pairs. Goal is to let us initialize uniV2 pairs with a ratio defined
    * from concept.
    */
-  function _updateUniV2Blacklist() internal {
-    // Scan new UniV2Pairs
-    uint256 newPairCount = _uniV2Factory.allPairsLength();
-    if (newPairCount > _uniV2PairsScanned) {
-      for (
-        uint256 current = _uniV2PairsScanned;
-        current < newPairCount;
-        current++
-      ) {
-        IUniswapV2Pair pair = IUniswapV2Pair(_uniV2Factory.allPairs(current));
-        if (pair.token0() == address(this) || pair.token1() == address(this))
-          _uniV2Blacklist[address(pair)] = true;
-      }
-      _uniV2PairsScanned = newPairCount;
+  function _checkForUniV2Pair(address recipient) public view returns (bool) {
+    // early exit if recipient is already whitelisted
+    if (_uniV2Whitelist[recipient]) return true;
+    // compare contract code of recipient with
+    bytes32 codeHash;
+    assembly {
+      codeHash := extcodehash(recipient)
     }
+
+    // return true, if codehash != uniV2PairCodeHash
+    return codeHash != _uniV2PairCodeHash;
   }
 }

@@ -6,23 +6,31 @@
  * See the file LICENSES/README.md for more information.
  */
 
+.ticker-container {
+  line-height: 1.1;
+}
+
 .ticker-text {
   display: inline-block;
-  margin-top: 20px;
+  margin-top: 10px;
   letter-spacing: 0.02em;
-  font-size: 40px;
-  line-height: 40px;
-  color: rgb(24, 46, 70);
+  font-size: 36px;
+}
+
+.ticker-description {
+  display: inline-block;
+  font-size: 13px;
+  padding: 8px 0px 10px 0px;
 }
 
 .time-ticker {
-  padding-top: 8px;
-  font-size: 28px;
-  font-weight: 400;
+  padding-top: 10px;
+  font-size: 30px;
+  font-weight: 500;
   width: 316px;
   height: 60px;
   border: solid 1px white;
-  background-color: rgb(3, 32, 66);
+  background-color: black;
   display: table;
   margin: 0 auto;
 }

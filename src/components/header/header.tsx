@@ -73,7 +73,7 @@ class Header extends Component<unknown, CSTATE> {
           <Image src={logo} width="300" className="logo" />
         </Navbar.Brand>
         <Navbar.Collapse id="basic-navbar-nav"></Navbar.Collapse>
-        <Form className="dp-conn-form" inline>
+        <Form className="dp-conn-form" onSubmit={this.handleSubmit} inline>
           <input className="dp-conn-btn" type="submit" value={shortAddress} />
         </Form>
       </Navbar>
