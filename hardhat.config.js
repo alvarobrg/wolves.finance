@@ -46,7 +46,6 @@ const config = {
       },
     ],
   },
-  loggingEnabled: true,
   defaultNetwork: 'hardhat',
   networks: {
     hardhat: {
