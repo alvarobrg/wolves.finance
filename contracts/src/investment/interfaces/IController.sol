@@ -9,15 +9,12 @@
 pragma solidity >=0.6.0 <0.8.0;
 
 interface IController {
-  function onDeposit(uint256 amount) external;
+  // revert on failure, return deposit fee in 1e-18/fee notation on success
+  function onDeposit(uint256 amount) external view returns (uint256 fee);
 
-  function onWithdraw(uint256 amount) external;
+  // revert on failure, return withdrawal fee in 1e-18/fee notation on success
+  function onWithdraw(uint256 amount) external view returns (uint256 fee);
 
-  function calculateTokensEarned(
-    uint256 amount,
-    uint256 share,
-    uint256 depositStartBlock
-  ) external view returns (uint256); //1e18
-
-  function lockEarnedTokens(uint256 tokenCount) external;
+  // distribute rewards to sender and fee to internal contracts
+  function payOutRewards(address recipient, uint256 amount) external;
 }
