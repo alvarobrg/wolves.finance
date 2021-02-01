@@ -100,10 +100,11 @@ contract Crowdsale is Context, ReentrancyGuard {
   IUniswapV2Router02 private constant _uniV2Router =
     IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
 
-  // our target is providing 1125 WOLF + 75ETH initially
-  // into the UNISwapv2 liquidity pool
-  uint256 private constant _tokenForLp = 11250;
-  uint256 private constant _ethForLp = 375;
+  // rate of tokens to insert into the UNISwapv2 liquidity pool
+  // Because they will be devided, expanding by multiples of 10
+  // is fine to express decimal values
+  uint256 private _tokenForLp;
+  uint256 private _ethForLp;
 
   /**
    * @dev Reverts if not in crowdsale time range.
@@ -131,6 +132,8 @@ contract Crowdsale is Context, ReentrancyGuard {
     IERC20WolfMintable token,
     uint256 cap,
     uint256 wallet_cap,
+    uint256 lpEth,
+    uint256 lpToken,
     uint256 openingTime,
     uint256 closingTime
   ) {
@@ -138,6 +141,9 @@ contract Crowdsale is Context, ReentrancyGuard {
     require(wallet != address(0), 'wallet is the zero address');
     require(address(token) != address(0), 'token is the zero address');
     require(cap > 0, 'cap is 0');
+    require(lpEth > 0, 'lpEth is 0');
+    require(lpToken > 0, 'lpToken is 0');
+
     // solhint-disable-next-line not-rely-on-time
     require(
       openingTime >= block.timestamp,
@@ -151,6 +157,8 @@ contract Crowdsale is Context, ReentrancyGuard {
     _token = token;
     _cap = cap;
     _wallet_cap = wallet_cap;
+    _ethForLp = lpEth;
+    _tokenForLp = lpToken;
     _openingTime = openingTime;
     _closingTime = closingTime;
   }

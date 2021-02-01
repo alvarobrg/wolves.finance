@@ -17,6 +17,7 @@ import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Pair.sol';
 
 import '../investment/interfaces/IRewardHandler.sol';
+import '../investment/interfaces/ITxWorker.sol';
 
 contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
   using SafeMath for uint256;
@@ -24,13 +25,13 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
   /**
    * @dev The ERC 20 token name used by wallets to identify the token
    */
-  string private constant TOKEN_NAME = 'Wolf Token';
+  string private constant TOKEN_NAME = 'Wolves Of Wall Street';
 
   /**
    * @dev The ERC 20 token symbol used as an abbreviation of the token, such
    * as BTC, ETH, AUG or SJCX.
    */
-  string private constant TOKEN_SYMBOL = 'WOLF';
+  string private constant TOKEN_SYMBOL = 'WOWS';
 
   /**
    * @dev The number of decimal places to which the token will be calculated.
@@ -70,6 +71,11 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
   address public booster;
 
   /**
+   * @dev transaction worker for low gas service tasks
+   */
+  ITxWorker public txWorker;
+
+  /**
    * @dev If false, this pair is blocked
    */
   mapping(address => bool) private _uniV2Whitelist;
@@ -89,10 +95,10 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
     /*
      * Mint 2375 into teams wallet
      *
-     *   1.) 1375 token for development costs (audits / bug-bounty ...)
-     *   2.) 1000 token for marketing (influencer / design ...)
+     *   1.) 1800 token for development costs (audits / bug-bounty ...)
+     *   2.) 1800 token for marketing (influencer / design ...)
      */
-    _mint(_marketingWallet, 2375 * 1e18);
+    _mint(_marketingWallet, 3600 * 1e18);
     marketingWallet = _marketingWallet;
 
     /*
@@ -105,6 +111,9 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
 
     // Multi-sig teamwallet has initial admin rights, eg for adding minters
     _setupRole(DEFAULT_ADMIN_ROLE, _marketingWallet);
+
+    // deployer has initial Admin rights, will be revoked after setup
+    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
 
     // Create the UniV2 liquidity pool
     address _weth = UNI_V2_ROUTER.WETH();
@@ -192,6 +201,9 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
       'Only minters and != pairs'
     );
     super._transfer(sender, recipient, amount);
+
+    // check for low gas tasks
+    if (address(txWorker) != address(0)) txWorker.onTransaction();
   }
 
   /**
@@ -216,6 +228,11 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
   function setBooster(address _booster) external {
     require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Only admins');
     booster = _booster;
+  }
+
+  function setTXWorker(address _txWorker) external {
+    require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), 'Only admins');
+    txWorker = ITxWorker(_txWorker);
   }
 
   /* ================ IRewardHandler ================= */
