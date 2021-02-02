@@ -36,7 +36,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   mapping(address => uint256) public rewards;
   // TODO: remove next 2 lines after dapp launch (special reward condition)
   mapping(address => uint256) private firstStakeTime;
-  uint256 constant ethLimit = 2e17;
+  uint256 private constant ETH_LIMIT = 2e17;
 
   uint256 private _totalSupply;
   mapping(address => uint256) private _balances;
@@ -58,8 +58,8 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   ) {
     _farmName = _name;
     stakingToken = IUniswapV2Pair(_stakingToken);
-    route = IUniswapV2Pair(_route);
     controller = IController(_controller);
+    route = IUniswapV2Pair(_route);
   }
 
   /* ========== VIEWS ========== */
@@ -108,7 +108,8 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
 
   function getUIData(address _user) external view returns (uint256[7] memory) {
     (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
-    (uint112 reserve0R, uint112 reserve1R, ) = route.getReserves();
+    (uint112 reserve0R, uint112 reserve1R, ) =
+      address(route) != address(0) ? route.getReserves() : (1, 1, 0);
 
     uint256[7] memory result =
       [
@@ -150,13 +151,13 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
     // TODO: remove after launch
     if (
       firstStakeTime[msg.sender] == 0 &&
-      _ethAmount(_balances[msg.sender]) >= ethLimit
+      _ethAmount(_balances[msg.sender]) >= ETH_LIMIT
     ) firstStakeTime[msg.sender] = block.timestamp;
 
     emit Staked(msg.sender, amount);
   }
 
-  function withdraw(uint256 amount)
+  function unstake(uint256 amount)
     public
     nonReentrant
     updateReward(msg.sender)
@@ -173,10 +174,26 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
     // TODO: remove after launch
     if (
       firstStakeTime[msg.sender] > 0 &&
-      _ethAmount(_balances[msg.sender]) < ethLimit
+      _ethAmount(_balances[msg.sender]) < ETH_LIMIT
     ) firstStakeTime[msg.sender] = 0;
 
     emit Unstaked(msg.sender, amount);
+  }
+
+  function transfer(address recipient, uint256 amount)
+    external
+    updateReward(msg.sender)
+    updateReward(recipient)
+    returns (bool)
+  {
+    require(recipient != address(0), 'invalid address');
+    require(amount > 0, 'zero amount');
+
+    _balances[msg.sender] = _balances[msg.sender].sub(amount);
+    _balances[recipient] = _balances[recipient].add(amount);
+    emit Transfered(msg.sender, recipient, amount);
+
+    return true;
   }
 
   function getReward() public nonReentrant updateReward(msg.sender) {
@@ -190,7 +207,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   }
 
   function exit() external {
-    withdraw(_balances[msg.sender]);
+    unstake(_balances[msg.sender]);
     getReward();
   }
 
@@ -295,6 +312,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   event RewardAdded(uint256 reward);
   event Staked(address indexed user, uint256 amount);
   event Unstaked(address indexed user, uint256 amount);
+  event Transfered(address indexed from, address indexed to, uint256 amount);
   event RewardPaid(address indexed user, uint256 reward);
   event RewardsDurationUpdated(uint256 newDuration);
   event Recovered(address token, uint256 amount);

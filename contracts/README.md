@@ -9,10 +9,14 @@ Steps to setup the WOWS environment.
 -> parameter: rewardHandler (right now its token.sol)
 
 3.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)
--> This is to allow controller to call into token.sol
+-> This is to allow controller to call into token.sol to distribute rewards
 
 4.) deploy UniV2StakeFarm.sol
--> parameter: controller.sol
+-> parameter:
+\_name: "WETH/WOWS LP Farm,
+\_stakingToken: token.sol::uniV2Pair(),
+\_controller: address controller.sol,
+\_route: address of UniV2 WETH/USDT pool, can be 0 for test
 
 5.) call controller:: registerFarm
 -> parameter:
@@ -35,9 +39,11 @@ Steps to setup the WOWS environment.
 
 - rate: 60
 - wallet: gnosis marketing wallet
+- farm: address of UniV2StakeFarm.sol
 - token: token.sol address
 - cap: 100\*1e18
-- wallet_cap: 2\*1e17 (0.2 ETH)
+- invest_min: 2\*1e17 (0.2 ETH)
+- wallet_cap: 3\*1e18 (3 ETH)
 - lpEth: 4412
 - lptoken: 240000
 - openingTime: presale start / for test maybe now + 1 Minute

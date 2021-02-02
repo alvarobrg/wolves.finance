@@ -250,6 +250,10 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
 
     if (_amount == 0) return;
 
+    //check how much we have to mint
+    uint256 balance = balanceOf(address(this));
+    if (balance < _amount) _mint(address(this), _amount - balance);
+
     // distribute the fee
     uint256 absFee = _amount.mul(_fee).div(1e18);
     transfer(teamWallet, absFee.mul(_toTeam).div(1e6));
