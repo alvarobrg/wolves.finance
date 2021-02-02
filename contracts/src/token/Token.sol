@@ -19,7 +19,7 @@ import '../../interfaces/uniswap/IUniswapV2Pair.sol';
 import '../investment/interfaces/IRewardHandler.sol';
 import '../investment/interfaces/ITxWorker.sol';
 
-contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
+contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
   using SafeMath for uint256;
 
   /**
@@ -255,7 +255,7 @@ contract WolfToken is ERC20Capped, AccessControl, IRewardHandler {
     if (balance < _amount) _mint(address(this), _amount - balance);
 
     // distribute the fee
-    uint256 absFee = _amount.mul(_fee).div(1e18);
+    uint256 absFee = _amount.mul(_fee).div(1e6);
     transfer(teamWallet, absFee.mul(_toTeam).div(1e6));
     transfer(marketingWallet, absFee.mul(_toMarketing).div(1e6));
 

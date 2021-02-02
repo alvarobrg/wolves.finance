@@ -13,19 +13,23 @@ Steps to setup the WOWS environment.
 
 4.) deploy UniV2StakeFarm.sol
 -> parameter:
-\_name: "WETH/WOWS LP Farm,
-\_stakingToken: token.sol::uniV2Pair(),
-\_controller: address controller.sol,
-\_route: address of UniV2 WETH/USDT pool, can be 0 for test
 
-5.) call controller:: registerFarm
--> parameter:
+- name: "WETH/WOWS LP Farm,
+- stakingToken: token.sol::uniV2Pair(),
+- controller: address controller.sol,
+- route: address of UniV2 WETH/USDT pool, can be 0 for test
+- pairDirection: if WETH is not the smaller address of the pairs, set bit
+  first bit for stakingToken, second bit for route.
+  \
+
+  5.) call controller:: registerFarm
+  -> parameter:
 
 - farmAddress UniV2StakeFarm address
 - rewardCap (15.000 \*1e18)
 - rewardPerDuration (5000 *2 / 52 *1e18) we have 2 week duration!
 - rewardProvided 0
-- rewardfee 2\*1e16 (0.02)
+- rewardfee 2\*1e4 (0.02)
 
   6.) deploy booster.sol
 

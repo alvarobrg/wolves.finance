@@ -332,7 +332,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       !this.state.inputValid ||
       !this.state.termsChecked;
 
-    const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
+    //const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
     const failureClass = this.state.inputValid ? '' : ' pcr-input-failure';
 
     const { t } = this.props;
@@ -480,7 +480,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                       />
                     </td>
                   </tr>
-                  <tr>
+                  {/*<tr>
                     <td colSpan={2}>
                       WOLF {t('presale.tokenLocked')}:&nbsp;
                       <b>
@@ -498,7 +498,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                         onClick={this.handleClaim}
                       />
                     </td>
-                  </tr>
+                  </tr>*/}
                 </tbody>
               </table>
             </form>

@@ -47,19 +47,30 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   IUniswapV2Pair public immutable route;
   // The address of the controller
   IController public controller;
+  // The direction of the uniswap pairs
+  uint8 pairDirection;
 
   /* ========== CONSTRUCTOR ========== */
+
+  /**
+   * @param _pairDirection direction of the stakingToken and route pairs
+   * @dev bit 1 for stakingToken, bit 2 for route. token0 of both pairs should
+   * be identical, for example WETH+WOWS and WETH+USDT. If they are other way
+   * round, the bit has to be set to sign that they must be swapped for UI.
+   */
 
   constructor(
     string memory _name,
     address _stakingToken,
     address _controller,
-    address _route
+    address _route,
+    uint8 _pairDirection
   ) {
     _farmName = _name;
     stakingToken = IUniswapV2Pair(_stakingToken);
     controller = IController(_controller);
     route = IUniswapV2Pair(_route);
+    pairDirection = _pairDirection;
   }
 
   /* ========== VIEWS ========== */
@@ -107,9 +118,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   }
 
   function getUIData(address _user) external view returns (uint256[7] memory) {
-    (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
-    (uint112 reserve0R, uint112 reserve1R, ) =
-      address(route) != address(0) ? route.getReserves() : (1, 1, 0);
+    (uint112 reserve0, uint112 reserve1, uint256 price) = _getTokenUiData();
 
     uint256[7] memory result =
       [
@@ -119,7 +128,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
         (uint256(reserve1).mul(_balances[_user])).div(
           stakingToken.totalSupply()
         ),
-        (uint256(reserve0R).mul(1e18)).div(reserve1R),
+        price,
         (_balances[_user].mul(1e18)).div(_totalSupply),
         rewardsDuration,
         rewardRate.mul(rewardsDuration),
@@ -286,8 +295,43 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
   /* ========== PRIVATE ========== */
 
   function _ethAmount(uint256 amountToken) private view returns (uint256) {
-    (uint112 reserve0, , ) = stakingToken.getReserves();
+    (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
+    // WETH is token 1
+    if ((pairDirection & 1) != 0) reserve0 = reserve1;
+
     return (uint256(reserve0).mul(amountToken)).div(stakingToken.totalSupply());
+  }
+
+  /**
+   * @dev returns the reserves in order: ETH -> Token, ETH/stable
+   */
+  function _getTokenUiData()
+    internal
+    view
+    returns (
+      uint112,
+      uint112,
+      uint256
+    )
+  {
+    (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
+    (uint112 reserve0R, uint112 reserve1R, ) =
+      address(route) != address(0) ? route.getReserves() : (1, 1, 0);
+
+    uint112 swap;
+    // WETH is token 1, swap
+    if ((pairDirection & 1) != 0) {
+      swap = reserve0;
+      reserve0 = reserve1;
+      reserve1 = swap;
+    }
+    // WETH is token 1, swap
+    if ((pairDirection & 2) != 0) {
+      swap = reserve0R;
+      reserve0R = reserve1R;
+      reserve1R = swap;
+    }
+    return (reserve0, reserve1, uint256(reserve0R).mul(1e18).div(reserve1R));
   }
 
   /* ========== MODIFIERS ========== */

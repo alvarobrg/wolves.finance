@@ -160,7 +160,7 @@ contract Controller is IController, Ownable {
    * @param _rewardCap max. amount of tokens rewardable
    * @param _rewardPerDuration refuel amount of tokens, duration is fixed in farm contract
    * @param _rewardProvided already provided rewards for this farm, should be 0 for external calls
-   * @param _rewardFee fee we take from the reward and distribute through components (1e18 factor)
+   * @param _rewardFee fee we take from the reward and distribute through components (1e6 factor)
    * @dev registerFarm can be called from outside (for new Farms deployed with this controller)
    * or from transferFarm() call. Contracts are active from the time of registering, but to
    * provide rewards, refuelFarms must be called (for new Farms / due Farms).
