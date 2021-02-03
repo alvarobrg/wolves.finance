@@ -363,8 +363,6 @@ contract StableCoinFarm is IFarm, ERC20, Ownable, ReentrancyGuard {
     payableOwner.transfer(address(this).balance);
   }
 
-  function refresh() external override updateReward(msg.sender) {}
-
   /* ========== INTERNAL FUNCTIONS ========== */
 
   // Total Asset amount, reduced by our fee

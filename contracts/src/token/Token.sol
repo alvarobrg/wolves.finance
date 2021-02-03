@@ -93,7 +93,7 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
     _setupDecimals(TOKEN_DECIMALS);
 
     /*
-     * Mint 2375 into teams wallet
+     * Mint 3600 into teams wallet
      *
      *   1.) 1800 token for development costs (audits / bug-bounty ...)
      *   2.) 1800 token for marketing (influencer / design ...)
@@ -203,7 +203,7 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
     super._transfer(sender, recipient, amount);
 
     // check for low gas tasks
-    if (address(txWorker) != address(0)) txWorker.onTransaction();
+    if (address(txWorker) != address(0)) txWorker.onTransaction(0);
   }
 
   /**

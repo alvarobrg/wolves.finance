@@ -15,19 +15,12 @@ import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
+import '../investment/interfaces/IStakeFarm.sol';
 
 interface IERC20WolfMintable is IERC20 {
   function mint(address account, uint256 amount) external returns (bool);
 
   function enableUniV2Pair(bool enable) external;
-}
-
-interface IStakeFarm {
-  function stake(uint256 amount) external;
-
-  function unstake(uint256 amount) external;
-
-  function transfer(address recipient, uint256 amount) external;
 }
 
 /**

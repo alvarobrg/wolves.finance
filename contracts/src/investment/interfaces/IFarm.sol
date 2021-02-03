@@ -28,7 +28,4 @@ interface IFarm {
 
   // rebalance strategies (if implemented)
   function rebalance() external;
-
-  // refresh rewards so they can be viewed
-  function refresh() external;
 }

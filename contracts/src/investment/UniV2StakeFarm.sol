@@ -16,9 +16,10 @@ import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
 import './interfaces/IController.sol';
 import './interfaces/IFarm.sol';
+import './interfaces/IStakeFarm.sol';
 import '../../interfaces/uniswap/IUniswapV2Pair.sol';
 
-contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
+contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
@@ -141,6 +142,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
 
   function stake(uint256 amount)
     external
+    override
     nonReentrant
     updateReward(msg.sender)
   {
@@ -168,6 +170,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
 
   function unstake(uint256 amount)
     public
+    override
     nonReentrant
     updateReward(msg.sender)
   {
@@ -192,9 +195,9 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
 
   function transfer(address recipient, uint256 amount)
     external
+    override
     updateReward(msg.sender)
     updateReward(recipient)
-    returns (bool)
   {
     require(recipient != address(0), 'invalid address');
     require(amount > 0, 'zero amount');
@@ -202,11 +205,9 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
     _balances[msg.sender] = _balances[msg.sender].sub(amount);
     _balances[recipient] = _balances[recipient].add(amount);
     emit Transfered(msg.sender, recipient, amount);
-
-    return true;
   }
 
-  function getReward() public nonReentrant updateReward(msg.sender) {
+  function getReward() public override nonReentrant updateReward(msg.sender) {
     uint256 reward = rewards[msg.sender];
     if (reward > 0) {
       rewards[msg.sender] = 0;
@@ -216,12 +217,10 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
     }
   }
 
-  function exit() external {
+  function exit() external override {
     unstake(_balances[msg.sender]);
     getReward();
   }
-
-  function refresh() external override updateReward(msg.sender) {}
 
   /* ========== RESTRICTED FUNCTIONS ========== */
 
@@ -297,7 +296,7 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
 
   function _ethAmount(uint256 amountToken) private view returns (uint256) {
     (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
-    // WETH is token 1
+    // WETH is token1, swap
     if ((pairDirection & 1) != 0) reserve0 = reserve1;
 
     return (uint256(reserve0).mul(amountToken)).div(stakingToken.totalSupply());
@@ -320,13 +319,13 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
       address(route) != address(0) ? route.getReserves() : (1, 1, 0);
 
     uint112 swap;
-    // WETH is token 1, swap
+    // WETH is token1, swap
     if ((pairDirection & 1) != 0) {
       swap = reserve0;
       reserve0 = reserve1;
       reserve1 = swap;
     }
-    // WETH is token 1, swap
+    // WETH is token1, swap
     if ((pairDirection & 2) != 0) {
       swap = reserve0R;
       reserve0R = reserve1R;
