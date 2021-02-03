@@ -13,7 +13,9 @@ import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
-import 'contracts/interfaces/uniswap/IUniswapV2Router02.sol';
+
+import '../../interfaces/uniswap/IUniswapV2Router02.sol';
+import '../investment/interfaces/IStakeFarm.sol';
 
 interface IERC20WolfMintable is IERC20 {
   function mint(address account, uint256 amount) external returns (bool);
@@ -53,16 +55,14 @@ contract Crowdsale is Context, ReentrancyGuard {
   uint256 private _weiRaised;
 
   uint256 private _cap;
-  uint256 private _wallet_cap;
+  uint256 private _investMin;
+  uint256 private _walletCap;
 
   uint256 private _openingTime;
   uint256 private _closingTime;
 
-  // locked tokens (in token * decimals)
-  mapping(address => uint256) private _lockedTokens;
-
   // per wallet investment (in wei)
-  mapping(address => uint256) private _wallet_invest;
+  mapping(address => uint256) private _walletInvest;
 
   /**
    * Event for token purchase logging
@@ -80,30 +80,37 @@ contract Crowdsale is Context, ReentrancyGuard {
 
   /**
    * Event for add liquidity logging
+   * @param beneficiary who got the tokens
    * @param amountToken how many token were added
    * @param amountETH how many ETH were added
    * @param liquidity how many pool tokens were created
    */
   event LiquidityAdded(
+    address indexed beneficiary,
     uint256 amountToken,
     uint256 amountETH,
     uint256 liquidity
   );
 
   /**
-   * Event for claim logging
-   * @param amountClaimed how many token were claimed
+   * Event for stake liquidity logging
+   * @param beneficiary who got the tokens
+   * @param liquidity how many pool tokens were created
    */
-  event TokensClaimed(address indexed beneficiary, uint256 amountClaimed);
+  event Staked(address indexed beneficiary, uint256 liquidity);
 
   // Uniswap Router for providing liquidity
   IUniswapV2Router02 private constant _uniV2Router =
     IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+  IERC20 private _uniV2Pair;
 
-  // our target is providing 1125 WOLF + 75ETH initially
-  // into the UNISwapv2 liquidity pool
-  uint256 private constant _tokenForLp = 11250;
-  uint256 private constant _ethForLp = 375;
+  IStakeFarm private _stakeFarm;
+
+  // rate of tokens to insert into the UNISwapv2 liquidity pool
+  // Because they will be devided, expanding by multiples of 10
+  // is fine to express decimal values
+  uint256 private _tokenForLp;
+  uint256 private _ethForLp;
 
   /**
    * @dev Reverts if not in crowdsale time range.
@@ -119,18 +126,28 @@ contract Crowdsale is Context, ReentrancyGuard {
    * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
    * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
    * @param wallet Address where collected funds will be forwarded to
+   * @param stakeFarm address of our UniV2 WETH/WOWS stake farm
    * @param token Address of the token being sold
+   * @param pair Address of the WETH/WOWS pair
    * @param cap Max amount of wei to be contributed
-   * @param wallet_cap Max amount of wei to be contributed per wallet
+   * @param investMin minimum investment in wei
+   * @param walletCap Max amount of wei to be contributed per wallet
+   * @param lpEth numerator of liquidity pair
+   * @param lpToken denominator of liquidity pair
    * @param openingTime Crowdsale opening time
    * @param closingTime Crowdsale closing time
    */
   constructor(
     uint256 rate,
     address payable wallet,
+    IStakeFarm stakeFarm,
     IERC20WolfMintable token,
+    IERC20 pair,
     uint256 cap,
-    uint256 wallet_cap,
+    uint256 investMin,
+    uint256 walletCap,
+    uint256 lpEth,
+    uint256 lpToken,
     uint256 openingTime,
     uint256 closingTime
   ) {
@@ -138,6 +155,9 @@ contract Crowdsale is Context, ReentrancyGuard {
     require(wallet != address(0), 'wallet is the zero address');
     require(address(token) != address(0), 'token is the zero address');
     require(cap > 0, 'cap is 0');
+    require(lpEth > 0, 'lpEth is 0');
+    require(lpToken > 0, 'lpToken is 0');
+
     // solhint-disable-next-line not-rely-on-time
     require(
       openingTime >= block.timestamp,
@@ -148,9 +168,14 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     _rate = rate;
     _wallet = wallet;
+    _stakeFarm = stakeFarm;
     _token = token;
+    _uniV2Pair = pair;
     _cap = cap;
-    _wallet_cap = wallet_cap;
+    _investMin = investMin;
+    _walletCap = walletCap;
+    _ethForLp = lpEth;
+    _tokenForLp = lpToken;
     _openingTime = openingTime;
     _closingTime = closingTime;
   }
@@ -201,10 +226,17 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   /**
+   * @return the minimal investment of the crowdsale.
+   */
+  function minInvest() public view returns (uint256) {
+    return _investMin;
+  }
+
+  /**
    * @return the cap per wallet of the crowdsale.
    */
-  function wallet_cap() public view returns (uint256) {
-    return _wallet_cap;
+  function walletCap() public view returns (uint256) {
+    return _walletCap;
   }
 
   /**
@@ -255,7 +287,6 @@ contract Crowdsale is Context, ReentrancyGuard {
    *         userEthAmount: amount of ETH in users wallet (wei)
    *         userEthInvest: amount of ETH users has already spend (wei)
    *         userTokenAmount: amount of token hold by user (token::decimals)
-   *         userTokenLocked: amount of token users has locked (token::decimals)
    */
   function getStates(address beneficiary)
     public
@@ -267,15 +298,13 @@ contract Crowdsale is Context, ReentrancyGuard {
       uint256 timeNow,
       uint256 userEthAmount,
       uint256 userEthInvested,
-      uint256 userTokenAmount,
-      uint256 userTokenLocked
+      uint256 userTokenAmount
     )
   {
     uint256 ethAmount = beneficiary == address(0) ? 0 : beneficiary.balance;
     uint256 tokenAmount =
       beneficiary == address(0) ? 0 : _token.balanceOf(beneficiary);
-    uint256 ethInvest = _wallet_invest[beneficiary];
-    uint256 lockedToken = _lockedTokens[beneficiary];
+    uint256 ethInvest = _walletInvest[beneficiary];
 
     return (
       _weiRaised,
@@ -284,8 +313,7 @@ contract Crowdsale is Context, ReentrancyGuard {
       block.timestamp,
       ethAmount,
       ethInvest,
-      tokenAmount,
-      lockedToken
+      tokenAmount
     );
   }
 
@@ -304,28 +332,93 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     // update state
     _weiRaised = _weiRaised.add(weiAmount);
-    _wallet_invest[beneficiary] = _wallet_invest[beneficiary].add(weiAmount);
-    _lockedTokens[beneficiary] = _lockedTokens[beneficiary].add(tokens);
+    _walletInvest[beneficiary] = _walletInvest[beneficiary].add(weiAmount);
 
     _processPurchase(beneficiary, tokens);
     emit TokensPurchased(_msgSender(), beneficiary, weiAmount, tokens);
 
-    _updatePurchasingState(beneficiary, weiAmount);
-
-    _forwardFunds();
-    _postValidatePurchase(beneficiary, weiAmount);
+    _forwardFunds(weiAmount);
   }
 
   /**
-   * @dev claim tokens which were locked in buy step
+   * @dev low level token purchase and liquidity staking ***DO NOT OVERRIDE***
+   * This function has a non-reentrancy guard, so it shouldn't be called by
+   * another `nonReentrant` function.
+   * @param beneficiary Recipient of the token purchase
    */
-  function claimTokens() external {
-    require(_lockedTokens[msg.sender] > 0, '');
-    uint256 amount = _lockedTokens[msg.sender];
-    _lockedTokens[msg.sender] = 0;
+  function buyTokensAddLiquidity(address payable beneficiary)
+    public
+    payable
+    nonReentrant
+  {
+    uint256 weiAmount = msg.value;
+    // The ETH amount we buy WOWS token for
+    uint256 buyAmount =
+      weiAmount.mul(_tokenForLp).div(_rate.mul(_ethForLp).add(_tokenForLp));
+    // The ETH amount we for liquidity (ETH + WOLF)
+    uint256 investAmount = weiAmount.sub(buyAmount);
 
-    _token.transfer(msg.sender, amount);
-    emit TokensClaimed(msg.sender, amount);
+    _preValidatePurchase(beneficiary, buyAmount);
+
+    // calculate token amount to be created
+    uint256 tokens = _getTokenAmount(buyAmount);
+
+    // verify that the ratio is in 0.1% limit
+    uint256 tokensReverse = investAmount.mul(_tokenForLp).div(_ethForLp);
+    require(
+      tokens < tokensReverse || tokens.sub(tokensReverse) < tokens.div(1000),
+      'ratio wrong'
+    );
+    require(
+      tokens > tokensReverse || tokensReverse.sub(tokens) < tokens.div(1000),
+      'ratio wrong'
+    );
+
+    // update state
+    _weiRaised = _weiRaised.add(buyAmount);
+    _walletInvest[beneficiary] = _walletInvest[beneficiary].add(buyAmount);
+
+    _processLiquidity(beneficiary, investAmount, tokens);
+
+    _forwardFunds(buyAmount);
+  }
+
+  /**
+   * @dev low level token liquidity staking ***DO NOT OVERRIDE***
+   * This function has a non-reentrancy guard, so it shouldn't be called by
+   * another `nonReentrant` function.
+   * approve must be called before to let us transfer msgsenders tokens
+   * @param beneficiary Recipient of the token purchase
+   */
+  function addLiquidity(address payable beneficiary)
+    public
+    payable
+    nonReentrant
+    onlyWhileOpen
+  {
+    uint256 weiAmount = msg.value;
+    require(beneficiary != address(0), 'beneficiary is the zero address');
+    require(weiAmount != 0, 'weiAmount is 0');
+
+    // calculate number of tokens
+    uint256 tokenAmount = weiAmount.mul(_tokenForLp).div(_ethForLp);
+    require(_token.balanceOf(msg.sender) >= tokenAmount, 'insufficient token');
+
+    // get the tokens from msg.sender
+    _token.safeTransferFrom(msg.sender, address(this), tokenAmount);
+
+    // Step 1: add liquidity
+    uint256 lpToken =
+      _addLiquidity(address(this), beneficiary, weiAmount, tokenAmount);
+
+    // Step 2: we now own the liquidity tokens, stake them
+    _uniV2Pair.approve(address(_stakeFarm), lpToken);
+    _stakeFarm.stake(lpToken);
+
+    // Step 3: transfer the stake to the user
+    _stakeFarm.transfer(beneficiary, lpToken);
+
+    emit Staked(beneficiary, lpToken);
   }
 
   /**
@@ -343,26 +436,20 @@ contract Crowdsale is Context, ReentrancyGuard {
     // Mint token we spend
     require(_token.mint(address(this), tokenToLp), 'minting failed');
 
-    // Add Liquidity, receiver of pool tokens is _wallet
-    _token.approve(address(_uniV2Router), tokenToLp);
-    (uint256 amountToken, uint256 amountETH, uint256 liquidity) =
-      _uniV2Router.addLiquidityETH{ value: ethBalance }(
-        address(_token),
-        tokenToLp,
-        tokenToLp,
-        ethBalance,
-        _wallet,
-        block.timestamp + 86400
-      );
-    emit LiquidityAdded(amountToken, amountETH, liquidity);
+    _addLiquidity(_wallet, _wallet, ethBalance, tokenToLp);
+
+    // There should be no more WOWS if everything worked fine
+    // But let us make sure that we don't left corpse
+    uint256 tokenCorpse = _token.balanceOf(address(this));
+    if (tokenCorpse > 0) _token.transfer(_wallet, tokenToLp);
 
     // finally whitelist uniV2 LP pool on token contract
     _token.enableUniV2Pair(true);
   }
 
   function testSetTimes() public {
-    _openingTime = block.timestamp + 300;
-    _closingTime = block.timestamp + 600;
+    _openingTime = block.timestamp + 10;
+    _closingTime = block.timestamp + 3600;
     _token.enableUniV2Pair(false);
   }
 
@@ -383,8 +470,9 @@ contract Crowdsale is Context, ReentrancyGuard {
     require(beneficiary != address(0), 'beneficiary is the zero address');
     require(weiAmount != 0, 'weiAmount is 0');
     require(weiRaised().add(weiAmount) <= _cap, 'cap exceeded');
+    require(weiAmount >= _investMin, 'invest too small');
     require(
-      _wallet_invest[beneficiary].add(weiAmount) <= _wallet_cap,
+      _walletInvest[beneficiary].add(weiAmount) <= _walletCap,
       'wallet-cap exceeded'
     );
 
@@ -394,40 +482,45 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   /**
-   * @dev Validation of an executed purchase. Observe state and use revert statements to undo rollback when valid
-   * conditions are not met.
-   * @param beneficiary Address performing the token purchase
-   * @param weiAmount Value in wei involved in the purchase
-   */
-  function _postValidatePurchase(address beneficiary, uint256 weiAmount)
-    internal
-    view
-  {
-    // solhint-disable-previous-line no-empty-blocks
-  }
-
-  /**
    * @dev Executed when a purchase has been validated and is ready to be executed. Doesn't necessarily emit/send
    * tokens.
-   * @param beneficiary Address receiving the tokens
-   * @param tokenAmount Number of tokens to be purchased
+   * @param _beneficiary Address receiving the tokens
+   * @param _tokenAmount Number of tokens to be purchased
    */
-  function _processPurchase(address beneficiary, uint256 tokenAmount) internal {
-    require(_token.mint(address(this), tokenAmount), 'minting failed');
-    // prevent unused var warning
-    beneficiary;
+  function _processPurchase(address _beneficiary, uint256 _tokenAmount)
+    internal
+  {
+    require(_token.mint(address(this), _tokenAmount), 'minting failed');
+    _token.transfer(_beneficiary, _tokenAmount);
   }
 
   /**
-   * @dev Override for extensions that require an internal state to check for validity (current user contributions,
-   * etc.)
+   * @dev Executed when a purchase has been validated and is ready to be executed.
+   * This function adds liquidity and stakes the liquidity in our initial farm
    * @param beneficiary Address receiving the tokens
-   * @param weiAmount Value in wei involved in the purchase
+   * @param ethAmount Amount of ETH provided
+   * @param tokenAmount Number of tokens to be purchased
    */
-  function _updatePurchasingState(address beneficiary, uint256 weiAmount)
-    internal
-  {
-    // solhint-disable-previous-line no-empty-blocks
+  function _processLiquidity(
+    address payable beneficiary,
+    uint256 ethAmount,
+    uint256 tokenAmount
+  ) internal {
+    require(_token.mint(address(this), tokenAmount), 'minting failed');
+
+    // Step 1: add liquidity
+    uint256 lpToken =
+      _addLiquidity(address(this), beneficiary, ethAmount, tokenAmount);
+
+    // Step 2: we now own the liquidity tokens, stake them
+    // allow stakeFarm to own our tokens
+    _uniV2Pair.approve(address(_stakeFarm), lpToken);
+    _stakeFarm.stake(lpToken);
+
+    // Step 3: transfer the stake to the user
+    _stakeFarm.transfer(beneficiary, lpToken);
+
+    emit Staked(beneficiary, lpToken);
   }
 
   /**
@@ -442,7 +535,36 @@ contract Crowdsale is Context, ReentrancyGuard {
   /**
    * @dev Determines how ETH is stored/forwarded on purchases.
    */
-  function _forwardFunds() internal {
-    _wallet.transfer(msg.value.div(2));
+  function _forwardFunds(uint256 weiAmount) internal {
+    _wallet.transfer(weiAmount.div(2));
+  }
+
+  function _addLiquidity(
+    address tokenOwner,
+    address payable remainingReceiver,
+    uint256 ethBalance,
+    uint256 tokenBalance
+  ) internal returns (uint256) {
+    // Add Liquidity, receiver of pool tokens is _wallet
+    _token.approve(address(_uniV2Router), tokenBalance);
+    (uint256 amountToken, uint256 amountETH, uint256 liquidity) =
+      _uniV2Router.addLiquidityETH{ value: ethBalance }(
+        address(_token),
+        tokenBalance,
+        tokenBalance.mul(90).div(100),
+        ethBalance.mul(90).div(100),
+        tokenOwner,
+        block.timestamp + 86400
+      );
+    emit LiquidityAdded(tokenOwner, amountToken, amountETH, liquidity);
+
+    // send remaining ETH to the team wallet
+    if (amountETH < ethBalance)
+      remainingReceiver.transfer(ethBalance.sub(amountETH));
+    // send remaining WOWS token to team wallet
+    if (amountToken < tokenBalance)
+      _token.transfer(remainingReceiver, tokenBalance.sub(amountToken));
+
+    return liquidity;
   }
 }

@@ -8,7 +8,7 @@
 
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CrowdsaleAbi from 'abi/contracts/src/crowdsale/Crowdsale.sol/Crowdsale.json';
-import TokenAbi from 'abi/contracts/src/token/Token.sol/WolfToken.json';
+import TokenAbi from 'abi/contracts/src/token/Token.sol/WowsToken.json';
 import async from 'async';
 import { ethers } from 'ethers';
 import Emitter from 'events';
@@ -17,11 +17,12 @@ import React from 'react';
 import Web3Modal from 'web3modal';
 
 import { addresses } from '../config/addresses';
+import { privateNetwork } from '../config/networks';
 import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
   PRESALE_BUY,
-  PRESALE_CLAIM,
+  PRESALE_LIQUIDITY,
   PRESALE_STATE,
   TX_HASH,
 } from './constants';
@@ -64,7 +65,6 @@ export type PresaleResult = {
     ethUser: number;
     ethInvested: number;
     tokenUser: number;
-    tokenLocked: number;
   };
 };
 
@@ -76,12 +76,12 @@ type cbf = async.AsyncResultCallback<unknown, Error>;
 
 class Store {
   web3Modal: Web3Modal;
-  ethersProvider: ethers.providers.Web3Provider | null = null;
-  eventProvider: ethers.providers.InfuraWebSocketProvider | null = null;
+  ethersProvider: ethers.providers.JsonRpcProvider | null = null;
+  eventProvider: ethers.providers.WebSocketProvider | null = null;
   tokenContract: ethers.Contract | null = null;
   presaleContract: ethers.Contract | null = null;
   presaleContractRO: ethers.Contract | null = null;
-  networkName = 'rinkeby';
+  networkName = 'mainnet';
   chainId = 0;
   address = '';
   assets = {};
@@ -111,8 +111,8 @@ class Store {
         case PRESALE_BUY:
           this._doPresale(_payload.content);
           break;
-        case PRESALE_CLAIM:
-          this._doPresaleClaim(_payload.content);
+        case PRESALE_LIQUIDITY:
+          this._doPresaleLiquidity(_payload.content);
           break;
         case PRESALE_STATE:
           this._getPresaleState(_payload.content);
@@ -135,15 +135,23 @@ class Store {
       if (this.ethersProvider !== null) {
         await this.disconnect(false);
       }
-      const web3Provider = await this.web3Modal.connect();
-      await this.subscribeProvider(web3Provider);
 
-      const ethersProvider = new ethers.providers.Web3Provider(web3Provider);
+      let ethersProvider: ethers.providers.JsonRpcProvider;
+      if (this.networkName === 'private') {
+        ethersProvider = new ethers.providers.JsonRpcProvider(
+          'http://' + privateNetwork
+        );
+      } else {
+        const web3Provider = await this.web3Modal.connect();
+        await this.subscribeProvider(web3Provider);
+
+        ethersProvider = new ethers.providers.Web3Provider(web3Provider);
+      }
       const accounts = await ethersProvider.listAccounts();
       this.address = accounts[0];
       const network = await ethersProvider.getNetwork();
       this.chainId = network.chainId;
-      this.networkName = network.name;
+      if (this.networkName !== 'private') this.networkName = network.name;
       await this._launchEventProvider();
       if (this._setupContracts(ethersProvider)) this._emitNetworkChange();
       this.ethersProvider = ethersProvider;
@@ -247,10 +255,7 @@ class Store {
         this._getPresaleState(undefined);
       });
       if (this.address !== '') {
-        filter = this.presaleContractRO.filters.TokensClaimed(
-          this.address,
-          null
-        );
+        filter = this.presaleContractRO.filters.Staked(this.address, null);
         this.eventProvider?.on(filter, (log, event) => {
           this._getPresaleState(undefined);
         });
@@ -273,10 +278,17 @@ class Store {
         !this.eventProvider ||
         (await this.eventProvider?.getNetwork()).chainId !== this.chainId
       ) {
-        const eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
-          this.networkName,
-          process.env.REACT_APP_INFURA_ID
-        );
+        let eventProvider: ethers.providers.WebSocketProvider;
+        if (this.networkName === 'private') {
+          eventProvider = new ethers.providers.WebSocketProvider(
+            'ws://' + privateNetwork
+          );
+        } else {
+          eventProvider = ethers.providers.InfuraProvider.getWebSocketProvider(
+            this.networkName,
+            process.env.REACT_APP_INFURA_ID
+          );
+        }
         if (!this.chainId)
           this.chainId = (await eventProvider.getNetwork()).chainId;
 
@@ -315,14 +327,14 @@ class Store {
         return addresses[1];
       case 4:
         return addresses[4];
+      case 1337:
+        return addresses[1337];
       default:
         return null;
     }
   }
 
-  _setupEventContracts(
-    provider: ethers.providers.InfuraWebSocketProvider
-  ): void {
+  _setupEventContracts(provider: ethers.providers.WebSocketProvider): void {
     const chainAddresses = this._getChainAddresses();
 
     if (chainAddresses) {
@@ -334,7 +346,7 @@ class Store {
     }
   }
 
-  _setupContracts(provider: ethers.providers.Web3Provider): boolean {
+  _setupContracts(provider: ethers.providers.JsonRpcProvider): boolean {
     const chainAddresses = this._getChainAddresses();
     if (chainAddresses) {
       const signer = provider?.getSigner();
@@ -364,7 +376,6 @@ class Store {
             userEthAmount: ethers.BigNumber;
             userEthInvested: ethers.BigNumber;
             userTokenAmount: ethers.BigNumber;
-            userTokenLocked: ethers.BigNumber;
           }
         | undefined = await this.presaleContractRO?.getStates(
         this.address === '' ? Store.nullAddress : this.address
@@ -386,7 +397,6 @@ class Store {
             ethUser: this.fromWei(states.userEthAmount),
             ethInvested: this.fromWei(states.userEthInvested),
             tokenUser: this.fromWei(states.userTokenAmount),
-            tokenLocked: this.fromWei(states.userTokenLocked),
           },
         });
       }
@@ -441,18 +451,24 @@ class Store {
     }
   };
 
-  // Buy tokens for {amount} ETH
-  _doPresaleClaim = async (payloadContent: PayloadContent) => {
+  // Buy tokens and add liquidity for {amount} ETH
+  _doPresaleLiquidity = async (payloadContent: PayloadContent) => {
     try {
+      const { amount } = payloadContent;
+      const investAmount = { value: this.toWei(amount || 0) };
+
       const tx:
         | ethers.ContractTransaction
-        | undefined = await this.presaleContract?.claimTokens();
+        | undefined = await this.presaleContract?.buyTokensAddLiquidity(
+        this.address,
+        investAmount
+      );
       emitter.emit(TX_HASH, tx?.hash);
 
       await tx?.wait();
-      emitter.emit(PRESALE_CLAIM, {});
+      emitter.emit(PRESALE_LIQUIDITY, {});
     } catch (e) {
-      emitter.emit(PRESALE_CLAIM, { error: e.message });
+      emitter.emit(PRESALE_LIQUIDITY, { error: e.message });
     }
   };
 

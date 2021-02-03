@@ -16,7 +16,7 @@ import WolfToken from '../../assets/wolves-token_233.png';
 import {
   CONNECTION_CHANGED,
   PRESALE_BUY,
-  PRESALE_CLAIM,
+  PRESALE_LIQUIDITY,
   PRESALE_STATE,
 } from '../../stores/constants';
 import {
@@ -88,6 +88,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   textRef: React.RefObject<HTMLSpanElement> = React.createRef();
   clockRef: React.RefObject<HTMLDivElement> = React.createRef();
   inputRef: React.RefObject<HTMLInputElement> = createRef();
+  liquidityRef: React.RefObject<HTMLInputElement> = createRef();
   buttonRef: HTMLInputElement | null = null;
   checkRef: HTMLInputElement | null = null;
 
@@ -96,9 +97,19 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
   static readonly EthMin = 0.2;
   static readonly EthMax = 3;
+  // transform buy ETH into total ETH
+  static readonly buy2Total = (68 * 4412 + 240000) / 240000;
+
   static readonly defaultEthValue = Presale.EthMin.toString();
+  static readonly defaultLiquidityValue = (
+    Presale.EthMin * Presale.buy2Total
+  ).toFixed(2);
 
   investLimit = { min: Presale.EthMin, max: Presale.EthMax };
+  liquidityLimit = {
+    min: Presale.EthMin * Presale.buy2Total,
+    max: Presale.EthMax * Presale.buy2Total,
+  };
 
   constructor(props: PRESALEPROPS) {
     super(props);
@@ -107,7 +118,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     this.handleOnBlur = this.handleOnBlur.bind(this);
     this.handleOnChange = this.handleOnChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleClaim = this.handleClaim.bind(this);
     this.onConnectionChanged = this.onConnectionChanged.bind(this);
     this.onPresaleState = this.onPresaleState.bind(this);
     this.onPresaleBuy = this.onPresaleBuy.bind(this);
@@ -120,6 +130,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
     this.emitter.on(PRESALE_STATE, this.onPresaleState);
     this.emitter.on(PRESALE_BUY, this.onPresaleBuy);
+    this.emitter.on(PRESALE_LIQUIDITY, this.onPresaleBuy);
     if (StoreClasses.store.isEventConnected())
       this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
     window.addEventListener('PRESALE_TICKER', this.handleTickEvent);
@@ -129,6 +140,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     this.emitter.off(PRESALE_BUY, this.onPresaleBuy);
     this.emitter.off(PRESALE_STATE, this.onPresaleState);
     this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
+    this.emitter.off(PRESALE_LIQUIDITY, this.onPresaleBuy);
     window.removeEventListener('PRESALE_TICKER', this.handleTickEvent);
     if (this.tickerHandle !== undefined) clearInterval(this.tickerHandle);
   }
@@ -194,21 +206,35 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
   onPresaleBuy(params: StatusResult): void {
     this.setState({ waiting: false });
-    if (params['error'] === undefined && this.inputRef.current) {
-      this.inputRef.current.value = Presale.defaultEthValue;
+    if (params['error'] === undefined) {
+      if (this.inputRef.current) {
+        this.inputRef.current.value = Presale.defaultEthValue;
+      }
+      if (this.liquidityRef.current) {
+        this.liquidityRef.current.value = Presale.defaultLiquidityValue;
+      }
       this._updateInvestLimits(this.state.ethUser, this.state.ethInvested);
     }
   }
 
   handleSubmit(event: React.FormEvent<HTMLFormElement>): void {
     this.setState({ waiting: true });
-    if (this.inputRef.current) {
+    if (document.activeElement?.id === 'buy' && this.inputRef.current) {
       const amount = parseFloat(this.inputRef.current.value);
       this.dispatcher.dispatch({
         type: PRESALE_BUY,
         content: { amount: amount },
       });
-    }
+    } else if (
+      document.activeElement?.id === 'liquidity' &&
+      this.liquidityRef.current
+    ) {
+      const amount = parseFloat(this.liquidityRef.current.value);
+      this.dispatcher.dispatch({
+        type: PRESALE_LIQUIDITY,
+        content: { amount: amount },
+      });
+    } else this.setState({ waiting: false });
     event.preventDefault();
   }
 
@@ -222,13 +248,6 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   handleOnBlur(event: React.FocusEvent<HTMLInputElement>): void {
     if (event.target.value.trim() === '')
       event.target.value = Presale.defaultEthValue;
-  }
-
-  handleClaim(event: React.MouseEvent): void {
-    this.dispatcher.dispatch({
-      type: PRESALE_CLAIM,
-      content: { amount: 0 },
-    });
   }
 
   handleTickEvent(event: Event): void {
@@ -299,6 +318,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       this.state.connected ? ethUser : 3,
       3 - ethInvested
     );
+    this.liquidityLimit.max = this.investLimit.max * Presale.buy2Total;
     this._validateInput(this.inputRef.current?.value);
   }
 
@@ -320,6 +340,16 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
         }).toString();
   }
 
+  _getButtonTextLiquidity(time: string | undefined): string {
+    const { t } = this.props;
+    return this.state.hasClosed
+      ? t('presale.closed').toString()
+      : t(time && !this.state.isOpen ? 'presale.buyIn' : 'presale.buy', {
+          num: this._calculateWOLF(this.inputRef.current?.value),
+          time: time,
+        }).toString();
+  }
+
   onButtonRefChanged(ref: HTMLInputElement): void {
     this.buttonRef = ref;
     this.forceUpdate();
@@ -332,8 +362,13 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       !this.state.inputValid ||
       !this.state.termsChecked;
 
-    const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
+    //const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
     const failureClass = this.state.inputValid ? '' : ' pcr-input-failure';
+
+    const liquidityLimitFormatted = {
+      min: this.liquidityLimit.min.toFixed(2),
+      max: this.liquidityLimit.max.toFixed(2),
+    };
 
     const { t } = this.props;
 
@@ -447,6 +482,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                       <hr style={{ margin: '8px 0px 8px 0px' }} />
                     </td>
                   </tr>
+                  {/************ Buy ************ */}
                   <tr>
                     <td colSpan={3}>
                       <span className="pcr-input-label">
@@ -472,6 +508,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                   <tr>
                     <td colSpan={3}>
                       <input
+                        id="buy"
                         className="pcr-btn"
                         type="submit"
                         value={this._getButtonText(undefined)}
@@ -480,7 +517,42 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                       />
                     </td>
                   </tr>
+                  {/************ Liquidity ************ */}
                   <tr>
+                    <td colSpan={3}>
+                      <span className="pcr-input-label">
+                        {t('presale.liquidity', liquidityLimitFormatted)}
+                      </span>
+                      <br />
+                      <div className="pcr-input-container">
+                        <input
+                          type="text"
+                          defaultValue={Presale.defaultLiquidityValue}
+                          name="eth_liquidity_invest"
+                          id="eth_liquidity"
+                          ref={this.liquidityRef}
+                          autoComplete="off"
+                          className={'pcr-input' + failureClass}
+                          //onChange={this.handleOnChange}
+                          //onBlur={this.handleOnBlur}
+                        />
+                        <div className="pcr-input-currency">ETH</div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td colSpan={3}>
+                      <input
+                        id="liquidity"
+                        className="pcr-btn"
+                        type="submit"
+                        value={this._getButtonTextLiquidity(undefined)}
+                        disabled={disabled}
+                        //ref={this.onButtonRefChanged}
+                      />
+                    </td>
+                  </tr>
+                  {/*<tr>
                     <td colSpan={2}>
                       WOLF {t('presale.tokenLocked')}:&nbsp;
                       <b>
@@ -498,7 +570,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                         onClick={this.handleClaim}
                       />
                     </td>
-                  </tr>
+                  </tr>*/}
                 </tbody>
               </table>
             </form>
