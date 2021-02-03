@@ -6,7 +6,9 @@ Steps to setup the WOWS environment.
 -> parameter: gnosis marketing_wallet / gnosis team_wallet
 
 2.) deploy controller.sol
--> parameter: rewardHandler (right now its token.sol)
+-> parameter:
+- rewardHandler (right now its token.sol)
+- previousController: 0 address / only for later updates
 
 3.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)
 -> This is to allow controller to call into token.sol to distribute rewards

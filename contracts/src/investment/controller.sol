@@ -308,7 +308,7 @@ contract Controller is IController, Ownable {
         block.timestamp + 86400 >= IFarm(iterAddress).periodFinish()
       ) {
         IFarm(iterAddress).notifyRewardAmount(farm.rewardPerDuration);
-        farm.rewardProvided.add(farm.rewardPerDuration);
+        farm.rewardProvided = farm.rewardProvided.add(farm.rewardPerDuration);
         emit Refueled(iterAddress, farm.rewardPerDuration);
       }
       iterAddress = farm.nextFarm;
