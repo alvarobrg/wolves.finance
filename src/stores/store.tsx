@@ -22,7 +22,7 @@ import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
   PRESALE_BUY,
-  PRESALE_CLAIM,
+  PRESALE_LIQUIDITY,
   PRESALE_STATE,
   TX_HASH,
 } from './constants';
@@ -111,8 +111,8 @@ class Store {
         case PRESALE_BUY:
           this._doPresale(_payload.content);
           break;
-        case PRESALE_CLAIM:
-          this._doPresaleClaim(_payload.content);
+        case PRESALE_LIQUIDITY:
+          this._doPresaleLiquidity(_payload.content);
           break;
         case PRESALE_STATE:
           this._getPresaleState(_payload.content);
@@ -451,18 +451,24 @@ class Store {
     }
   };
 
-  // Buy tokens for {amount} ETH
-  _doPresaleClaim = async (payloadContent: PayloadContent) => {
+  // Buy tokens and add liquidity for {amount} ETH
+  _doPresaleLiquidity = async (payloadContent: PayloadContent) => {
     try {
+      const { amount } = payloadContent;
+      const investAmount = { value: this.toWei(amount || 0) };
+
       const tx:
         | ethers.ContractTransaction
-        | undefined = await this.presaleContract?.claimTokens();
+        | undefined = await this.presaleContract?.buyTokensAddLiquidity(
+        this.address,
+        investAmount
+      );
       emitter.emit(TX_HASH, tx?.hash);
 
       await tx?.wait();
-      emitter.emit(PRESALE_CLAIM, {});
+      emitter.emit(PRESALE_LIQUIDITY, {});
     } catch (e) {
-      emitter.emit(PRESALE_CLAIM, { error: e.message });
+      emitter.emit(PRESALE_LIQUIDITY, { error: e.message });
     }
   };
 

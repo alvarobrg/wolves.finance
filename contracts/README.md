@@ -7,14 +7,15 @@ Steps to setup the WOWS environment.
 
 2.) deploy controller.sol
 -> parameter:
+
 - rewardHandler (right now its token.sol)
 - previousController: 0 address / only for later updates
 
-3.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)
--> This is to allow controller to call into token.sol to distribute rewards
+  3.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)
+  -> This is to allow controller to call into token.sol to distribute rewards
 
-4.) deploy UniV2StakeFarm.sol
--> parameter:
+  4.) deploy UniV2StakeFarm.sol
+  -> parameter:
 
 - name: "WETH/WOWS LP Farm,
 - stakingToken: token.sol::uniV2Pair(),
