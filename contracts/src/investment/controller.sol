@@ -29,13 +29,13 @@ contract Controller is IController, Ownable {
 
   // The fee is distributed to 4 channels:
   // 0.15 team
-  uint32 private constant FEE_TO_TEAM = 15e4;
+  uint32 private constant FEE_TO_TEAM = 15 * 1e4;
   // 0.15 marketing
-  uint32 private constant FEE_TO_MARKETING = 15e4;
+  uint32 private constant FEE_TO_MARKETING = 15 * 1e4;
   // 0.4 booster
-  uint32 private constant FEE_TO_BOOSTER = 4e5;
+  uint32 private constant FEE_TO_BOOSTER = 4 * 1e5;
   // 0.3 back to reward pool
-  uint32 private constant FEE_TO_REWARDPOOL = 3e5;
+  uint32 private constant FEE_TO_REWARDPOOL = 3 * 1e5;
 
   address private farmHead;
   struct Farm {
@@ -77,8 +77,9 @@ contract Controller is IController, Ownable {
    * the reward token and distributes them to the different
    * recipients.
    */
-  constructor(address _rewardHandler) {
+  constructor(address _rewardHandler, address _previousController) {
     setRewardHandler(_rewardHandler);
+    previousController = _previousController;
   }
 
   /* ========== ROUTING ========== */

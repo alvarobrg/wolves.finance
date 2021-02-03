@@ -8,7 +8,7 @@
 
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CrowdsaleAbi from 'abi/contracts/src/crowdsale/Crowdsale.sol/Crowdsale.json';
-import TokenAbi from 'abi/contracts/src/token/Token.sol/WolfToken.json';
+import TokenAbi from 'abi/contracts/src/token/Token.sol/WowsToken.json';
 import async from 'async';
 import { ethers } from 'ethers';
 import Emitter from 'events';

@@ -183,7 +183,8 @@ contract UniV2StakeFarm is IFarm, Ownable, ReentrancyGuard {
     // TODO: remove after launch
     if (
       firstStakeTime[msg.sender] > 0 &&
-      _ethAmount(_balances[msg.sender]) < ETH_LIMIT
+      (_balances[msg.sender] == 0 ||
+        _ethAmount(_balances[msg.sender]) < ETH_LIMIT)
     ) firstStakeTime[msg.sender] = 0;
 
     emit Unstaked(msg.sender, amount);

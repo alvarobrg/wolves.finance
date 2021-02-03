@@ -250,22 +250,26 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
 
     if (_amount == 0) return;
 
-    //check how much we have to mint
+    // check how much we have to mint
     uint256 balance = balanceOf(address(this));
     if (balance < _amount) _mint(address(this), _amount - balance);
 
     // distribute the fee
     uint256 absFee = _amount.mul(_fee).div(1e6);
-    transfer(teamWallet, absFee.mul(_toTeam).div(1e6));
-    transfer(marketingWallet, absFee.mul(_toMarketing).div(1e6));
+    _transfer(address(this), teamWallet, absFee.mul(_toTeam).div(1e6));
+    _transfer(
+      address(this),
+      marketingWallet,
+      absFee.mul(_toMarketing).div(1e6)
+    );
 
     if (booster != address(0))
-      transfer(booster, absFee.mul(_toBooster).div(1e6));
+      _transfer(address(this), booster, absFee.mul(_toBooster).div(1e6));
 
     // nothing to do with _toRewardPool beause we are rewardPool
     _toRewardPool;
 
     //Now send rewards to the user
-    transfer(_recipient, _amount.sub(absFee));
+    _transfer(address(this), _recipient, _amount.sub(absFee));
   }
 }

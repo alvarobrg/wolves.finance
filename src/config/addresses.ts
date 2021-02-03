@@ -20,7 +20,7 @@ const addresses = {
   1337: {
     //private
     token: '0xA399A989B7eC4CAAfA9C5d0c00CAd625853Bdcc0',
-    presale: '0xd32953883A9D8801a8A21b5490B41025B25084F2',
+    presale: '0x51A951372De851d611E918AC768ab77E1ADCe68f',
   },
 };
 

@@ -109,6 +109,7 @@ contract Crowdsale is Context, ReentrancyGuard {
   // Uniswap Router for providing liquidity
   IUniswapV2Router02 private constant _uniV2Router =
     IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+  IERC20 private _uniV2Pair;
 
   IStakeFarm private _stakeFarm;
 
@@ -134,6 +135,7 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @param wallet Address where collected funds will be forwarded to
    * @param stakeFarm address of our UniV2 WETH/WOWS stake farm
    * @param token Address of the token being sold
+   * @param pair Address of the WETH/WOWS pair
    * @param cap Max amount of wei to be contributed
    * @param investMin minimum investment in wei
    * @param walletCap Max amount of wei to be contributed per wallet
@@ -147,6 +149,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     address payable wallet,
     IStakeFarm stakeFarm,
     IERC20WolfMintable token,
+    IERC20 pair,
     uint256 cap,
     uint256 investMin,
     uint256 walletCap,
@@ -174,6 +177,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     _wallet = wallet;
     _stakeFarm = stakeFarm;
     _token = token;
+    _uniV2Pair = pair;
     _cap = cap;
     _investMin = investMin;
     _walletCap = walletCap;
@@ -415,6 +419,7 @@ contract Crowdsale is Context, ReentrancyGuard {
       _addLiquidity(address(this), beneficiary, weiAmount, tokenAmount);
 
     // Step 2: we now own the liquidity tokens, stake them
+    _uniV2Pair.approve(address(_stakeFarm), lpToken);
     _stakeFarm.stake(lpToken);
 
     // Step 3: transfer the stake to the user
@@ -450,8 +455,8 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   function testSetTimes() public {
-    _openingTime = block.timestamp + 300;
-    _closingTime = block.timestamp + 600;
+    _openingTime = block.timestamp + 10;
+    _closingTime = block.timestamp + 3600;
     _token.enableUniV2Pair(false);
   }
 
@@ -515,6 +520,8 @@ contract Crowdsale is Context, ReentrancyGuard {
       _addLiquidity(address(this), beneficiary, ethAmount, tokenAmount);
 
     // Step 2: we now own the liquidity tokens, stake them
+    // allow stakeFarm to own our tokens
+    _uniV2Pair.approve(address(_stakeFarm), lpToken);
     _stakeFarm.stake(lpToken);
 
     // Step 3: transfer the stake to the user

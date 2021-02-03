@@ -45,6 +45,7 @@ Steps to setup the WOWS environment.
 - wallet: gnosis marketing wallet
 - farm: address of UniV2StakeFarm.sol
 - token: token.sol address
+- pair: address of uniswap v2 pair (token.sol::uniV2Pair())
 - cap: 100\*1e18
 - invest_min: 2\*1e17 (0.2 ETH)
 - wallet_cap: 3\*1e18 (3 ETH)
