@@ -53,25 +53,34 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
 
   /* ========== CONSTRUCTOR ========== */
 
-  /**
-   * @param _pairDirection direction of the stakingToken and route pairs
-   * @dev bit 1 for stakingToken, bit 2 for route. token0 of both pairs should
-   * be identical, for example WETH+WOWS and WETH+USDT. If they are other way
-   * round, the bit has to be set to sign that they must be swapped for UI.
-   */
-
   constructor(
     string memory _name,
     address _stakingToken,
+    address _rewardToken,
     address _controller,
-    address _route,
-    uint8 _pairDirection
+    address _route
   ) {
     _farmName = _name;
     stakingToken = IUniswapV2Pair(_stakingToken);
     controller = IController(_controller);
     route = IUniswapV2Pair(_route);
-    pairDirection = _pairDirection;
+
+    address routeLink;
+    /** @dev Calculate the sort order of the keys once to save gas in further steps
+     * Our token sort order is:
+     * - stakeToken: token0[routeLink], token1[rewardToken]
+     * - route:      token0[routeLink], token1[stableCoin]
+     * If the sort order differs, we set one bit for each of both
+     */
+    if (stakingToken.token0() == _rewardToken) {
+      pairDirection = 1;
+      routeLink = stakingToken.token1();
+    } else routeLink = stakingToken.token0();
+
+    if (
+      address(_route) != address(0) &&
+      IUniswapV2Pair(_route).token1() == routeLink
+    ) pairDirection |= 2;
   }
 
   /* ========== VIEWS ========== */
@@ -118,19 +127,18 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
     return rewardRate.mul(rewardsDuration);
   }
 
-  function getUIData(address _user) external view returns (uint256[7] memory) {
+  function getUIData(address _user) external view returns (uint256[9] memory) {
     (uint112 reserve0, uint112 reserve1, uint256 price) = _getTokenUiData();
-
-    uint256[7] memory result =
+    uint256[9] memory result =
       [
-        (uint256(reserve0).mul(_balances[_user])).div(
-          stakingToken.totalSupply()
-        ),
-        (uint256(reserve1).mul(_balances[_user])).div(
-          stakingToken.totalSupply()
-        ),
+        // Pool
+        stakingToken.totalSupply(),
+        (uint256(reserve0)),
+        (uint256(reserve1)),
         price,
-        (_balances[_user].mul(1e18)).div(_totalSupply),
+        // Stake
+        _totalSupply,
+        _balances[_user],
         rewardsDuration,
         rewardRate.mul(rewardsDuration),
         earned(_user)
@@ -296,7 +304,7 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
 
   function _ethAmount(uint256 amountToken) private view returns (uint256) {
     (uint112 reserve0, uint112 reserve1, ) = stakingToken.getReserves();
-    // WETH is token1, swap
+    // routeLink is token1, swap
     if ((pairDirection & 1) != 0) reserve0 = reserve1;
 
     return (uint256(reserve0).mul(amountToken)).div(stakingToken.totalSupply());
@@ -319,13 +327,13 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
       address(route) != address(0) ? route.getReserves() : (1, 1, 0);
 
     uint112 swap;
-    // WETH is token1, swap
+    // routeLink is token1, swap
     if ((pairDirection & 1) != 0) {
       swap = reserve0;
       reserve0 = reserve1;
       reserve1 = swap;
     }
-    // WETH is token1, swap
+    // routeLink is token1, swap
     if ((pairDirection & 2) != 0) {
       swap = reserve0R;
       reserve0R = reserve1R;

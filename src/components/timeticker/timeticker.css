@@ -8,6 +8,15 @@
 
 .ticker-container {
   line-height: 1.1;
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.ticker-inner {
+  flex: 1 1;
+  align-self: center;
+  min-width: 370px;
 }
 
 .ticker-text {

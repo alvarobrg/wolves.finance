@@ -21,12 +21,19 @@ class TimeTicker extends Component<TimeTickerProps> {
   render(): ReactNode {
     return (
       <div className="ticker-container">
-        <span className="tk-vincente-bold ticker-text" ref={this.props.textRef}>
-          {this.props.value}
-        </span>
-        <br />
-        <span className="ticker-description">{this.props.description}</span>
-        <div className="time-ticker" ref={this.props.clockRef} />
+        <div className="ticker-inner">
+          <span
+            className="tk-vincente-bold ticker-text"
+            ref={this.props.textRef}
+          >
+            {this.props.value}
+          </span>
+          <br />
+          <span className="ticker-description">{this.props.description}</span>
+        </div>
+        <div className="ticker-inner">
+          <div className="time-ticker" ref={this.props.clockRef} />
+        </div>
       </div>
     );
   }

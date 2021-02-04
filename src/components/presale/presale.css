@@ -20,6 +20,13 @@
   width: 100%;
 }
 
+.info-container {
+  width: 100%;
+  background-color: var(--wolves-blue-dk);
+  color: white;
+  opacity: 0.75;
+}
+
 .progress-form {
   width: 100%;
   display: flex;
@@ -61,12 +68,18 @@
 /******* Left Container ******/
 
 .presale-content-left {
+  display: flex;
+  flex-direction: column;
   background-color: var(--wolves-blue-dk);
   text-align: left;
   opacity: 0.75;
   color: white;
   margin-right: 2%;
   font-size: 38px;
+}
+
+.presale-top {
+  flex-grow: 1;
 }
 
 .presale-content-left h1 {
@@ -103,6 +116,11 @@ h3 {
 
 .presale-content-left hr {
   background-color: white;
+}
+
+.presale-social {
+  display: flex;
+  justify-content: space-between;
 }
 
 .social-menu {
