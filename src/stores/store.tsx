@@ -8,6 +8,7 @@
 
 import WalletConnectProvider from '@walletconnect/web3-provider';
 import CrowdsaleAbi from 'abi/contracts/src/crowdsale/Crowdsale.sol/Crowdsale.json';
+import StakeAbi from 'abi/contracts/src/investment/UniV2StakeFarm.sol/UniV2StakeFarm.json';
 import TokenAbi from 'abi/contracts/src/token/Token.sol/WowsToken.json';
 import async from 'async';
 import { ethers } from 'ethers';
@@ -24,6 +25,7 @@ import {
   PRESALE_BUY,
   PRESALE_LIQUIDITY,
   PRESALE_STATE,
+  STAKE_STATE,
   TX_HASH,
 } from './constants';
 
@@ -43,6 +45,7 @@ type Payload = {
 type ChainAddresses = {
   token: string;
   presale: string;
+  univ2Pool: string;
 };
 
 export type TokenContractResult = {
@@ -72,6 +75,21 @@ export type StatusResult = {
   error: string | undefined;
 };
 
+export type StakeResult = {
+  error: string | undefined;
+  state: {
+    poolSupply: number; // amount tokens in pool
+    reserve0: number; // amount pair::token0
+    reserve1: number; // amount pair::token1
+    priceReserve0: number; // price per token0
+    stakeSupply: number; // amount tokens staked
+    stakeSupplyUser: number; // amount tokens staked user
+    rewardsDuration: number; // duration in seconds reward is based on
+    rewardPerDuration: number; // reward per rewardsDuration time
+    earned: number; // amount of reward tokens earned
+  };
+};
+
 type cbf = async.AsyncResultCallback<unknown, Error>;
 
 class Store {
@@ -81,6 +99,7 @@ class Store {
   tokenContract: ethers.Contract | null = null;
   presaleContract: ethers.Contract | null = null;
   presaleContractRO: ethers.Contract | null = null;
+  stakeContractRO: ethers.Contract | null = null;
   networkName = 'mainnet';
   chainId = 0;
   address = '';
@@ -117,6 +136,9 @@ class Store {
         case PRESALE_STATE:
           this._getPresaleState(_payload.content);
           break;
+        case STAKE_STATE:
+          this._getStakeState(_payload.content);
+          break;
         default: {
           return;
         }
@@ -148,7 +170,7 @@ class Store {
         ethersProvider = new ethers.providers.Web3Provider(web3Provider);
       }
       const accounts = await ethersProvider.listAccounts();
-      this.address = accounts[0];
+      this.address = ethers.utils.getAddress(accounts[0]);
       const network = await ethersProvider.getNetwork();
       this.chainId = network.chainId;
       if (this.networkName !== 'private') this.networkName = network.name;
@@ -343,6 +365,11 @@ class Store {
         CrowdsaleAbi,
         provider
       );
+      this.stakeContractRO = new ethers.Contract(
+        chainAddresses.univ2Pool,
+        StakeAbi,
+        provider
+      );
     }
   }
 
@@ -402,6 +429,36 @@ class Store {
       }
     } catch (e) {
       emitter.emit(PRESALE_STATE, { error: e.message });
+    }
+  };
+
+  _getStakeState = async (payloadContent: PayloadContent | undefined) => {
+    try {
+      const result:
+        | ethers.BigNumber[]
+        | undefined = await this.stakeContractRO?.getUIData(
+        this.address === '' ? Store.nullAddress : this.address
+      );
+
+      if (result) {
+        const stakeInfo: StakeResult = {
+          error: undefined,
+          state: {
+            poolSupply: this.fromWei(result[0]),
+            reserve0: this.fromWei(result[1]),
+            reserve1: this.fromWei(result[2]),
+            priceReserve0: this.fromWei(result[3]),
+            stakeSupply: this.fromWei(result[4]),
+            stakeSupplyUser: this.fromWei(result[5]),
+            rewardsDuration: result[6].toNumber(),
+            rewardPerDuration: this.fromWei(result[7]),
+            earned: this.fromWei(result[8]),
+          },
+        };
+        emitter.emit(STAKE_STATE, stakeInfo);
+      }
+    } catch (e) {
+      emitter.emit(STAKE_STATE, { error: e.message });
     }
   };
 

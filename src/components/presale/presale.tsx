@@ -18,6 +18,7 @@ import {
   PRESALE_BUY,
   PRESALE_LIQUIDITY,
   PRESALE_STATE,
+  STAKE_STATE,
 } from '../../stores/constants';
 import {
   ConnectResult,
@@ -27,6 +28,7 @@ import {
 } from '../../stores/store';
 import { TimeTicker } from '../timeticker';
 import Social from './social';
+import { StakeInfo } from './stakeInfo';
 
 type PRESALEPROPS = {
   t: TFunction;
@@ -81,6 +83,10 @@ const FAILURESTATE = {
   tokenLocked: 0,
 };
 
+function ceil2(n: number): string {
+  return (Math.ceil(n * 100) / 100).toString();
+}
+
 class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   emitter = StoreClasses.emitter;
   dispatcher = StoreClasses.dispatcher;
@@ -101,9 +107,9 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   static readonly buy2Total = (68 * 4412 + 240000) / 240000;
 
   static readonly defaultEthValue = Presale.EthMin.toString();
-  static readonly defaultLiquidityValue = (
+  static readonly defaultLiquidityValue = ceil2(
     Presale.EthMin * Presale.buy2Total
-  ).toFixed(2);
+  );
 
   investLimit = { min: Presale.EthMin, max: Presale.EthMax };
   liquidityLimit = {
@@ -213,7 +219,8 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       if (this.liquidityRef.current) {
         this.liquidityRef.current.value = Presale.defaultLiquidityValue;
       }
-      this._updateInvestLimits(this.state.ethUser, this.state.ethInvested);
+      this.dispatcher.dispatch({ type: PRESALE_STATE, content: {} });
+      this.dispatcher.dispatch({ type: STAKE_STATE, content: {} });
     }
   }
 
@@ -365,8 +372,13 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     //const claimDisabled = !this.state.connected || this.state.tokenLocked <= 0;
     const failureClass = this.state.inputValid ? '' : ' pcr-input-failure';
 
+    const investLimitFormatted = {
+      min: this.investLimit.min.toString(),
+      max: this.investLimit.max.toFixed(2),
+    };
+
     const liquidityLimitFormatted = {
-      min: this.liquidityLimit.min.toFixed(2),
+      min: ceil2(this.liquidityLimit.min),
       max: this.liquidityLimit.max.toFixed(2),
     };
 
@@ -380,6 +392,10 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
             description={t('presale.description')}
             textRef={this.textRef}
             clockRef={this.clockRef}
+          />
+          <StakeInfo
+            ethAmount={this.state.ethUser}
+            wowsAmount={this.state.tokenUser}
           />
         </div>
         <div className="progress-form">
@@ -403,55 +419,62 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
           </div>
         </div>
         <div className="presale-content-container">
+          {/****** LEFT ******/}
           <div className="presale-content presale-content-left">
-            <h1>
-              {t('title')} {t('presale.id')}
-            </h1>
-            <h2>1 ETH = 40 WOLF</h2>
-            <h3>
-              75 ETH {t('presale.target')} - 3000 WOLF {t('presale.available')}
-            </h3>
-            <table>
-              <tbody>
-                <tr>
-                  <td />
-                  <td>
-                    {t('presale.contract')}
-                    <br />
-                    {this._getPresaleContractAddress()}&nbsp;&nbsp;
-                    <CopyToClipboard text={this._getPresaleContractAddress()}>
-                      <Clipboard
-                        style={{
-                          color: 'var(--wolves-orange)',
-                          cursor: 'pointer',
-                          marginBottom: '2px',
-                        }}
-                      />
-                    </CopyToClipboard>
-                  </td>
-                </tr>
-                <tr>
-                  <td />
-                  <td>{t('presale.locked')}</td>
-                </tr>
-                <tr>
-                  <td />
-                  <td>{t('presale.wallet')}</td>
-                </tr>
-                <tr>
-                  <td />
-                  <td>{t('presale.limits')}</td>
-                </tr>
-              </tbody>
-            </table>
-            <hr />
-            <span style={{ float: 'left' }}>
-              <h3>{t('presale.followUs')}</h3>
-            </span>
-            <span style={{ float: 'right' }}>
-              <Social />
-            </span>
+            <div className="presale-top">
+              <h1>
+                {t('title')} {t('presale.id')}
+              </h1>
+              <h2>1 ETH = 40 WOLF</h2>
+              <h3>
+                75 ETH {t('presale.target')} - 3000 WOLF{' '}
+                {t('presale.available')}
+              </h3>
+              <table>
+                <tbody>
+                  <tr>
+                    <td />
+                    <td>
+                      {t('presale.contract')}
+                      <br />
+                      {this._getPresaleContractAddress()}&nbsp;&nbsp;
+                      <CopyToClipboard text={this._getPresaleContractAddress()}>
+                        <Clipboard
+                          style={{
+                            color: 'var(--wolves-orange)',
+                            cursor: 'pointer',
+                            marginBottom: '2px',
+                          }}
+                        />
+                      </CopyToClipboard>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td />
+                    <td>{t('presale.locked')}</td>
+                  </tr>
+                  <tr>
+                    <td />
+                    <td>{t('presale.wallet')}</td>
+                  </tr>
+                  <tr>
+                    <td />
+                    <td>{t('presale.limits')}</td>
+                  </tr>
+                </tbody>
+              </table>
+              <hr />
+            </div>
+            <div className="presale-social">
+              <span>
+                <h3>{t('presale.followUs')}</h3>
+              </span>
+              <span>
+                <Social />
+              </span>
+            </div>
           </div>
+          {/****** RIGHT ******/}
           <div className="presale-content presale-content-right">
             <img alt={WolfToken} src={WolfToken} width="50px" />
             <br />
@@ -486,7 +509,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                   <tr>
                     <td colSpan={3}>
                       <span className="pcr-input-label">
-                        {t('presale.purchase', this.investLimit)}
+                        {t('presale.purchase', investLimitFormatted)}
                       </span>
                       <br />
                       <div className="pcr-input-container">

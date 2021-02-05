@@ -12,6 +12,8 @@ export const TX_HASH = 'TX_HASH';
 
 export const ERC20_TOKEN_CONTRACT = 'ERC20_TOKEN_CONTRACT'; // information from token contract
 
-export const PRESALE_BUY = 'PRESALE_BUY'; //call for presale / buy tokens
-export const PRESALE_LIQUIDITY = 'PRESALE_LIQUIDITY'; //call for presale / buy and provide liq.
-export const PRESALE_STATE = 'PRESALE_STATE'; //request / receive presale information
+export const PRESALE_BUY = 'PRESALE_BUY'; // call for presale / buy tokens
+export const PRESALE_LIQUIDITY = 'PRESALE_LIQUIDITY'; // call for presale / buy and provide liq.
+export const PRESALE_STATE = 'PRESALE_STATE'; // request / receive presale information
+
+export const STAKE_STATE = 'STAKE_STATE'; // request Stake information
