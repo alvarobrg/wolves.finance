@@ -54,12 +54,14 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
   /* ========== CONSTRUCTOR ========== */
 
   constructor(
+    address _owner,
     string memory _name,
     address _stakingToken,
     address _rewardToken,
     address _controller,
     address _route
   ) {
+    transferOwnership(_owner);
     _farmName = _name;
     stakingToken = IUniswapV2Pair(_stakingToken);
     controller = IController(_controller);

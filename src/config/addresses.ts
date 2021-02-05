@@ -22,8 +22,8 @@ const addresses = {
   1337: {
     //private
     token: '0xA399A989B7eC4CAAfA9C5d0c00CAd625853Bdcc0',
-    presale: '0xF064d63A4DbE4f3bf10883D4d3cdd32df0bf71eb',
-    univ2Pool: '0x8b794aEB519C2106AD49B27f6579ECa3b8665017',
+    presale: '0xd32953883A9D8801a8A21b5490B41025B25084F2',
+    univ2Pool: '0xB44994F945B15f3D51cD053223B51044b610a355',
   },
 };
 

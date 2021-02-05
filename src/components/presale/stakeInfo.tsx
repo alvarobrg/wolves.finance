@@ -8,7 +8,11 @@
 
 import React, { Component, ReactNode } from 'react';
 
-import { CONNECTION_CHANGED, STAKE_STATE } from '../../stores/constants';
+import {
+  CONNECTION_CHANGED,
+  NEW_BLOCK,
+  STAKE_STATE,
+} from '../../stores/constants';
 import { ConnectResult, StakeResult, StoreClasses } from '../../stores/store';
 
 type STAKEINFOPROPS = {
@@ -46,23 +50,38 @@ class StakeInfo extends Component<STAKEINFOPROPS, STAKEINFOSTATE> {
   emitter = StoreClasses.emitter;
   dispatcher = StoreClasses.dispatcher;
 
+  lastTimeUpdated = 0;
+
   constructor(props: STAKEINFOPROPS) {
     super(props);
     this.state = { ...INITIALSTATE };
     this.onConnectionChanged = this.onConnectionChanged.bind(this);
     this.onStakeState = this.onStakeState.bind(this);
+    this.onNewBlock = this.onNewBlock.bind(this);
   }
 
   componentDidMount(): void {
     this.emitter.on(CONNECTION_CHANGED, this.onConnectionChanged);
     this.emitter.on(STAKE_STATE, this.onStakeState);
+    this.emitter.on(NEW_BLOCK, this.onNewBlock);
     if (StoreClasses.store.isEventConnected())
       this.dispatcher.dispatch({ type: STAKE_STATE, content: {} });
   }
 
   componentWillUnmount(): void {
+    this.emitter.off(NEW_BLOCK, this.onNewBlock);
     this.emitter.off(STAKE_STATE, this.onStakeState);
     this.emitter.off(CONNECTION_CHANGED, this.onConnectionChanged);
+  }
+
+  onNewBlock(): void {
+    if (
+      this.state.stakeSupplyUser > 0 &&
+      Date.now() - this.lastTimeUpdated > 30000
+    ) {
+      this.dispatcher.dispatch({ type: STAKE_STATE, content: {} });
+      this.lastTimeUpdated = Date.now();
+    }
   }
 
   onConnectionChanged(params: ConnectResult): void {
@@ -85,12 +104,12 @@ class StakeInfo extends Component<STAKEINFOPROPS, STAKEINFOSTATE> {
 
   render(): ReactNode {
     const { ethAmount, wowsAmount } = this.props;
-    const { stakeSupplyUser } = this.state;
+    const { stakeSupplyUser, earned } = this.state;
 
     return (
       <div className="info-container">
         ETH: {ethAmount.toFixed(2)}, WOWS: {wowsAmount.toFixed(2)}, LPToken:{' '}
-        {stakeSupplyUser.toFixed(6)}
+        {stakeSupplyUser.toFixed(2)}, Earned:{earned.toFixed(6)}
       </div>
     );
   }

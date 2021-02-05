@@ -100,8 +100,7 @@ contract Crowdsale is Context, ReentrancyGuard {
   event Staked(address indexed beneficiary, uint256 liquidity);
 
   // Uniswap Router for providing liquidity
-  IUniswapV2Router02 private constant _uniV2Router =
-    IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
+  IUniswapV2Router02 private immutable _uniV2Router;
   IERC20 private _uniV2Pair;
 
   IStakeFarm private _stakeFarm;
@@ -128,6 +127,7 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @param wallet Address where collected funds will be forwarded to
    * @param stakeFarm address of our UniV2 WETH/WOWS stake farm
    * @param token Address of the token being sold
+   * @param uniV2Router Address of uniswapV2Router02
    * @param pair Address of the WETH/WOWS pair
    * @param cap Max amount of wei to be contributed
    * @param investMin minimum investment in wei
@@ -142,6 +142,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     address payable wallet,
     IStakeFarm stakeFarm,
     IERC20WolfMintable token,
+    IUniswapV2Router02 uniV2Router,
     IERC20 pair,
     uint256 cap,
     uint256 investMin,
@@ -170,6 +171,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     _wallet = wallet;
     _stakeFarm = stakeFarm;
     _token = token;
+    _uniV2Router = uniV2Router;
     _uniV2Pair = pair;
     _cap = cap;
     _investMin = investMin;
@@ -296,12 +298,10 @@ contract Crowdsale is Context, ReentrancyGuard {
       uint256 timeOpen,
       uint256 timeClose,
       uint256 timeNow,
-      uint256 userEthAmount,
       uint256 userEthInvested,
       uint256 userTokenAmount
     )
   {
-    uint256 ethAmount = beneficiary == address(0) ? 0 : beneficiary.balance;
     uint256 tokenAmount =
       beneficiary == address(0) ? 0 : _token.balanceOf(beneficiary);
     uint256 ethInvest = _walletInvest[beneficiary];
@@ -311,7 +311,6 @@ contract Crowdsale is Context, ReentrancyGuard {
       _openingTime,
       _closingTime,
       block.timestamp,
-      ethAmount,
       ethInvest,
       tokenAmount
     );
@@ -402,10 +401,13 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     // calculate number of tokens
     uint256 tokenAmount = weiAmount.mul(_tokenForLp).div(_ethForLp);
-    require(_token.balanceOf(msg.sender) >= tokenAmount, 'insufficient token');
+    require(
+      _token.balanceOf(_msgSender()) >= tokenAmount,
+      'insufficient token'
+    );
 
     // get the tokens from msg.sender
-    _token.safeTransferFrom(msg.sender, address(this), tokenAmount);
+    _token.safeTransferFrom(_msgSender(), address(this), tokenAmount);
 
     // Step 1: add liquidity
     uint256 lpToken =

@@ -22,6 +22,7 @@ import { privateNetwork } from '../config/networks';
 import {
   CONNECTION_CHANGED,
   ERC20_TOKEN_CONTRACT,
+  NEW_BLOCK,
   PRESALE_BUY,
   PRESALE_LIQUIDITY,
   PRESALE_STATE,
@@ -283,6 +284,10 @@ class Store {
         });
       }
     }
+    // Our Block ticker
+    this.eventProvider?.on('block', (blockNumber) => {
+      emitter.emit(NEW_BLOCK, { blockNumber: blockNumber });
+    });
     return true;
   }
 
@@ -400,13 +405,17 @@ class Store {
             timeOpen: ethers.BigNumber;
             timeClose: ethers.BigNumber;
             timeNow: ethers.BigNumber;
-            userEthAmount: ethers.BigNumber;
             userEthInvested: ethers.BigNumber;
             userTokenAmount: ethers.BigNumber;
           }
         | undefined = await this.presaleContractRO?.getStates(
         this.address === '' ? Store.nullAddress : this.address
       );
+
+      const ethAmount =
+        this.address === ''
+          ? 0
+          : await this.eventProvider?.getBalance(this.address);
 
       if (states) {
         const hasClosed = states.timeNow.gt(states.timeClose);
@@ -421,7 +430,7 @@ class Store {
               : isOpen
               ? states.timeClose.sub(states.timeNow).toNumber() + 20
               : states.timeOpen.sub(states.timeNow).toNumber() + 20,
-            ethUser: this.fromWei(states.userEthAmount),
+            ethUser: ethAmount ? this.fromWei(ethAmount) : 0,
             ethInvested: this.fromWei(states.userEthInvested),
             tokenUser: this.fromWei(states.userTokenAmount),
           },
