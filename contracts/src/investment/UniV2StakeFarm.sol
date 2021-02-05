@@ -54,6 +54,7 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
   /* ========== CONSTRUCTOR ========== */
 
   constructor(
+    address _owner,
     string memory _name,
     address _stakingToken,
     address _rewardToken,
@@ -81,6 +82,7 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
       address(_route) != address(0) &&
       IUniswapV2Pair(_route).token1() == routeLink
     ) pairDirection |= 2;
+    transferOwnership(_owner);
   }
 
   /* ========== VIEWS ========== */

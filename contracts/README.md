@@ -5,11 +5,16 @@ Steps to setup the WOWS environment.
 1.) deploy token.sol\
 -> parameter:\
 
-> \- gnosis marketing_wallet / gnosis team_wallet
+> \- owner address\
+> \- gnosis marketing_wallet\
+> \- gnosis team_wallet\
+> \- UniV2Factory address\
+> \- UniV2Router02 address\
 
 2.) deploy controller.sol\
 -> parameter:\
 
+> \- owner address\
 > \- rewardHandler (right now its token.sol)\
 > \- previousController: 0 address / only for later updates\
 
@@ -19,6 +24,7 @@ Steps to setup the WOWS environment.
 4.) deploy UniV2StakeFarm.sol\
 -> parameter:\
 
+> \- owner address\
 > \- name: "WETH/WOWS LP Farm\
 > \- stakingToken: token.sol::uniV2Pair()\
 > \- rewardToken: token.sol\
@@ -50,6 +56,7 @@ Steps to setup the WOWS environment.
 > \- wallet: gnosis marketing wallet\
 > \- farm: address of UniV2StakeFarm.sol\
 > \- token: token.sol address\
+> \- UniV2Router02 address\
 > \- pair: address of uniswap v2 pair (token.sol::uniV2Pair())\
 > \- cap: 100\*1e18\
 > \- invest_min: 2\*1e17 (0.2 ETH)\

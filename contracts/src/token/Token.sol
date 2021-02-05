@@ -54,11 +54,6 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
    */
   bytes32 public constant REWARD_ROLE = 'reward_role';
 
-  IUniswapV2Factory private constant UNI_V2_FACTORY =
-    IUniswapV2Factory(0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f);
-  IUniswapV2Router02 private constant UNI_V2_ROUTER =
-    IUniswapV2Router02(0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D);
-
   address public immutable uniV2Pair;
   bytes32 private immutable _uniV2PairCodeHash;
 
@@ -85,10 +80,13 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
    *
    * @param _teamWallet The team wallet to receive initial supply
    */
-  constructor(address _marketingWallet, address _teamWallet)
-    ERC20Capped(MAX_SUPPLY)
-    ERC20(TOKEN_NAME, TOKEN_SYMBOL)
-  {
+  constructor(
+    address _owner,
+    address _marketingWallet,
+    address _teamWallet,
+    address _uniV2Factory,
+    address _uniV2Router
+  ) ERC20Capped(MAX_SUPPLY) ERC20(TOKEN_NAME, TOKEN_SYMBOL) {
     // Initialize ERC20 base
     _setupDecimals(TOKEN_DECIMALS);
 
@@ -113,11 +111,12 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
     _setupRole(DEFAULT_ADMIN_ROLE, _marketingWallet);
 
     // deployer has initial Admin rights, will be revoked after setup
-    _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _setupRole(DEFAULT_ADMIN_ROLE, _owner);
 
     // Create the UniV2 liquidity pool
-    address _weth = UNI_V2_ROUTER.WETH();
-    address _uniV2Pair = UNI_V2_FACTORY.createPair(address(this), _weth);
+    address _weth = IUniswapV2Router02(_uniV2Router).WETH();
+    address _uniV2Pair =
+      IUniswapV2Factory(_uniV2Factory).createPair(address(this), _weth);
     uniV2Pair = _uniV2Pair;
     // Retrieve the code hash of UniV2 pair which is same for all other univ2 pairs
     bytes32 codeHash;

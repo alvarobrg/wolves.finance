@@ -77,9 +77,14 @@ contract Controller is IController, Ownable {
    * the reward token and distributes them to the different
    * recipients.
    */
-  constructor(address _rewardHandler, address _previousController) {
+  constructor(
+    address _owner,
+    address _rewardHandler,
+    address _previousController
+  ) {
     setRewardHandler(_rewardHandler);
     previousController = _previousController;
+    transferOwnership(_owner);
   }
 
   /* ========== ROUTING ========== */

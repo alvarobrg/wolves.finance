@@ -47,6 +47,7 @@ contract StableCoinFarm is IFarm, ERC20, Ownable, ReentrancyGuard {
   /* ========== CONSTRUCTOR ========== */
 
   constructor(
+    address _owner,
     string memory _name,
     string memory _symbol,
     uint8 _decimals,
@@ -57,6 +58,7 @@ contract StableCoinFarm is IFarm, ERC20, Ownable, ReentrancyGuard {
     to18 = uint256(10)**(18 - _decimals);
     assetToken = _token;
     controller = IController(_controller);
+    transferOwnership(_owner);
   }
 
   /* ========== ERC20 overrides ========== */
