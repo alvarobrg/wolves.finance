@@ -82,9 +82,9 @@ contract Controller is IController, Ownable {
     address _rewardHandler,
     address _previousController
   ) {
-    transferOwnership(_owner);
     setRewardHandler(_rewardHandler);
     previousController = _previousController;
+    transferOwnership(_owner);
   }
 
   /* ========== ROUTING ========== */

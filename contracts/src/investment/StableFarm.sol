@@ -54,11 +54,11 @@ contract StableCoinFarm is IFarm, ERC20, Ownable, ReentrancyGuard {
     address _token,
     address _controller
   ) ERC20(_name, _symbol) {
-    transferOwnership(_owner);
     _setupDecimals(_decimals);
     to18 = uint256(10)**(18 - _decimals);
     assetToken = _token;
     controller = IController(_controller);
+    transferOwnership(_owner);
   }
 
   /* ========== ERC20 overrides ========== */

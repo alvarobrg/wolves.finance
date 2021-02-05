@@ -61,7 +61,6 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
     address _controller,
     address _route
   ) {
-    transferOwnership(_owner);
     _farmName = _name;
     stakingToken = IUniswapV2Pair(_stakingToken);
     controller = IController(_controller);
@@ -83,6 +82,7 @@ contract UniV2StakeFarm is IFarm, IStakeFarm, Ownable, ReentrancyGuard {
       address(_route) != address(0) &&
       IUniswapV2Pair(_route).token1() == routeLink
     ) pairDirection |= 2;
+    transferOwnership(_owner);
   }
 
   /* ========== VIEWS ========== */
