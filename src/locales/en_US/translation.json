@@ -1,6 +1,9 @@
 {
   "title": "WOLVES OF WALLSTREET",
   "token": "TOKEN",
+  "header": {
+    "connectWallet": "CONNECT WALLET"
+  },
   "presale": {
     "id": "PRE-SALE",
     "unknown": "THE $t(presale.id)",
@@ -21,8 +24,11 @@
     "purchase": "Purchase: Min {{min}} ETH - Max {{max}} ETH",
     "liquidity": "Purchase and add liquidity: Min {{min}} ETH - Max {{max}} ETH",
     "claim": "CLAIM",
-    "buy": "BUY {{num}} WOLF",
-    "buyIn": "BUY {{num}} WOLF in {{time}}",
-    "tokenLocked": "token locked"
+    "buy": "BUY {{num}} WOWS",
+    "buyIn": "BUY {{num}} WOWS in {{time}}",
+    "addLiq": "STAKE {{num}} WOWS + {{ethnum}} ETH",
+    "addLiqIn": "STAKE {{num}} WOWS + {{ethnum}} ETH in {{time}}",
+    "tokenLocked": "token locked",
+    "checkTerms": "CHECK TERMS & CONDITIONS"
   }
 }
