@@ -100,10 +100,10 @@ contract Crowdsale is Context, ReentrancyGuard {
   event Staked(address indexed beneficiary, uint256 liquidity);
 
   // Uniswap Router for providing liquidity
-  IUniswapV2Router02 private immutable uniV2Router;
-  IERC20 private uniV2Pair;
+  IUniswapV2Router02 public immutable uniV2Router;
+  IERC20 public immutable uniV2Pair;
 
-  IStakeFarm private stakeFarm;
+  IStakeFarm public immutable stakeFarm;
 
   // rate of tokens to insert into the UNISwapv2 liquidity pool
   // Because they will be devided, expanding by multiples of 10
