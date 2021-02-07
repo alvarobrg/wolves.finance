@@ -7,25 +7,27 @@ Steps to setup the WOWS environment.
 
 > \- \_owner (the only address which can add addresses, most likely the deployer)
 
-2.) AddressFactory:: setRegistryEntry for UniswapV2Router02, MarketingWallet, TeamWallet
+2.) deploy AddressBook\
 
-3.) deploy token.sol\
+3.) AddressFactory:: setRegistryEntry for UniswapV2Router02, MarketingWallet, TeamWallet
+
+4.) deploy token.sol\
 -> parameter:\
 
 > \- deployer address\
 > \- IAddressFactory address\ <- must contain "UniswapV2Router02", "MarketingWallet" and "TeamWallet" keys\
 
-4.) deploy controller.sol\
+5.) deploy controller.sol\
 -> parameter:\
 
 > \- IAddressFactory address\
 > \- rewardHandler (right now its token.sol)\
 > \- previousController: 0 address / only for later updates\
 
-5.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
+6.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
 -> This is to allow controller to call into token.sol to distribute rewards
 
-6.) deploy UniV2StakeFarm.sol\
+7.) deploy UniV2StakeFarm.sol\
 -> parameter:\
 
 > \- owner address\
@@ -35,7 +37,7 @@ Steps to setup the WOWS environment.
 > \- controller: address controller.sol\
 > \- route: address of UniV2 WETH/USDT pool, can be 0 for test
 
-7.) call controller:: registerFarm\
+8.) call controller:: registerFarm\
 -> parameter:\
 
 > \- farmAddress UniV2StakeFarm address\
@@ -44,14 +46,14 @@ Steps to setup the WOWS environment.
 > \- rewardProvided 0\
 > \- rewardfee 2\*1e4 (0.02)
 
-8.) AddressFactory:: setRegistryEntry for WethWowsStakeFarm (see 6.)
+9.) AddressFactory:: setRegistryEntry for WethWowsStakeFarm (see 6.)
 
-9.) deploy booster.sol\
+10.) deploy booster.sol\
 -> parameter:\
 
 > \- \_owner address\
 
-10.) call token.sol setBooster\
+11.) call token.sol setBooster\
 -> parameter:\
 
 > \- address of booster.sol

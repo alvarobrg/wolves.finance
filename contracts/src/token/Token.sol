@@ -18,9 +18,10 @@ import '../../interfaces/uniswap/IUniswapV2Pair.sol';
 
 import '../investment/interfaces/IRewardHandler.sol';
 import '../investment/interfaces/ITxWorker.sol';
+import '../utils/AddressBook.sol';
 import '../utils/interfaces/IAddressRegistry.sol';
 
-contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
+contract WowsToken is ERC20Capped, AccessControl, IRewardHandler, AddressBook {
   using SafeMath for uint256;
 
   /**
@@ -99,9 +100,7 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
      */
     // reverts if address is invalid
     address __marketingWallet =
-      _addressRegistry.getRegistryEntry(
-        keccak256(abi.encodePacked('MarketingWallet'))
-      );
+      _addressRegistry.getRegistryEntry(MARKETING_WALLET);
     _mint(__marketingWallet, 3600 * 1e18);
     _marketingWallet = __marketingWallet;
 
@@ -111,10 +110,7 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
      *   1.) 500 tokens * 15 month = 7500 team rewards
      */
     // reverts if address is invalid
-    address __teamWallet =
-      _addressRegistry.getRegistryEntry(
-        keccak256(abi.encodePacked('TeamWallet'))
-      );
+    address __teamWallet = _addressRegistry.getRegistryEntry(TEAM_WALLET);
     _mint(__teamWallet, 7500 * 1e18);
     _teamWallet = __teamWallet;
 
@@ -127,9 +123,7 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
     // reverts if address is invalid
     IUniswapV2Router02 _uniV2Router =
       IUniswapV2Router02(
-        _addressRegistry.getRegistryEntry(
-          keccak256(abi.encodePacked('UniswapV2Router02'))
-        )
+        _addressRegistry.getRegistryEntry(UNISWAP_V2_ROUTER02)
       );
 
     // Create the UniV2 liquidity pool
