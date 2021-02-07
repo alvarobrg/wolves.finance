@@ -11,7 +11,8 @@ pragma solidity >=0.6.0 <0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
-import '../../interfaces/IAddressRegistry.sol';
+import '../utils/interfaces/IAddressRegistry.sol';
+
 import './interfaces/IController.sol';
 import './interfaces/IFarm.sol';
 import './interfaces/IRewardHandler.sol';

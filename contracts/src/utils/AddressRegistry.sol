@@ -8,7 +8,7 @@
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-import '../interfaces/IAddressRegistry.sol';
+import './interfaces/IAddressRegistry.sol';
 
 pragma solidity >=0.7.0 <0.8.0;
 

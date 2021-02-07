@@ -14,10 +14,11 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
-import '../../interfaces/IAddressRegistry.sol';
 import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
+
 import '../investment/interfaces/IStakeFarm.sol';
+import '../utils/interfaces/IAddressRegistry.sol';
 
 interface IERC20WolfMintable is IERC20 {
   function mint(address account, uint256 amount) external returns (bool);

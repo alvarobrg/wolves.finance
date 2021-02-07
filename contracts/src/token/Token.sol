@@ -12,13 +12,13 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20Capped.sol';
 
-import '../../interfaces/IAddressRegistry.sol';
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
 import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Pair.sol';
 
 import '../investment/interfaces/IRewardHandler.sol';
 import '../investment/interfaces/ITxWorker.sol';
+import '../utils/interfaces/IAddressRegistry.sol';
 
 contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
   using SafeMath for uint256;
