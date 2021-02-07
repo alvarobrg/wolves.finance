@@ -83,8 +83,12 @@ const FAILURESTATE = {
   tokenLocked: 0,
 };
 
-function ceil2(n: number): string {
-  return (Math.ceil(n * 100) / 100).toString();
+function ceil4(n: number): string {
+  return (Math.ceil((n + Number.EPSILON) * 10000) / 10000).toString();
+}
+
+function floor4(n: number): string {
+  return (Math.floor((n + Number.EPSILON) * 10000) / 10000).toString();
 }
 
 class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
@@ -101,13 +105,14 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   timeoutHandle: NodeJS.Timeout | undefined = undefined;
   tickerHandle: number | undefined = undefined;
 
+  static readonly ETHRate = 80;
   static readonly EthMin = 0.2;
   static readonly EthMax = 3;
   // transform buy ETH into total ETH
-  static readonly buy2Total = (68 * 4412 + 240000) / 240000;
+  static readonly buy2Total = (Presale.ETHRate * 3750 + 240000) / 240000;
 
   static readonly defaultEthValue = Presale.EthMin.toString();
-  static readonly defaultLiquidityValue = ceil2(
+  static readonly defaultLiquidityValue = ceil4(
     Presale.EthMin * Presale.buy2Total
   );
 
@@ -327,7 +332,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
   _calculateWOLF(): string {
     const val = this.inputRef?.current?.value;
     return val && this.state.inputValid
-      ? (parseFloat(val) * 60).toFixed(2)
+      ? (parseFloat(val) * Presale.ETHRate).toFixed(2)
       : '--:--';
   }
 
@@ -341,10 +346,13 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
   _updateInvestLimits(ethUser: number, ethInvested: number): void {
     this.investLimit.max = Math.min(
-      this.state.connected ? ethUser : 3,
-      3 - ethInvested
+      this.state.connected ? ethUser : Presale.EthMax,
+      Presale.EthMax - ethInvested
     );
     this.liquidityLimit.max = this.investLimit.max * Presale.buy2Total;
+    if (this.state.connected && this.liquidityLimit.max > ethUser)
+      this.liquidityLimit.max = ethUser;
+
     this._validateInput(this.inputRef.current?.value);
   }
 
@@ -355,11 +363,11 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
     this.setState({ inputValid: valid });
     if (this.inputLRef.current) {
       if (valid) {
-        const lVal = parseFloat(ceil2(parsed * Presale.buy2Total));
-        this.inputLRef.current.value = (lVal > this.liquidityLimit.max
-          ? this.liquidityLimit.max
-          : lVal
-        ).toFixed(2);
+        const lVal = parsed * Presale.buy2Total;
+        this.inputLRef.current.value =
+          lVal > this.liquidityLimit.max
+            ? floor4(this.liquidityLimit.max)
+            : ceil4(lVal);
       } else this.inputLRef.current.value = Presale.defaultLiquidityValue;
     }
   }
@@ -370,9 +378,13 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       parsed >= this.liquidityLimit.min && parsed <= this.liquidityLimit.max;
     this.setState({ inputValid: valid });
     if (this.inputRef.current) {
-      this.inputRef.current.value = valid
-        ? (parsed / Presale.buy2Total).toFixed(2)
-        : Presale.defaultEthValue;
+      if (valid) {
+        const lVal = parsed / Presale.buy2Total;
+        this.inputRef.current.value =
+          lVal > this.liquidityLimit.max
+            ? floor4(this.liquidityLimit.max)
+            : ceil4(lVal);
+      } else this.inputRef.current.value = Presale.defaultLiquidityValue;
     }
   }
 
@@ -422,12 +434,12 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
     const investLimitFormatted = {
       min: this.investLimit.min.toString(),
-      max: this.investLimit.max.toFixed(2),
+      max: floor4(this.investLimit.max),
     };
 
     const liquidityLimitFormatted = {
-      min: ceil2(this.liquidityLimit.min),
-      max: this.liquidityLimit.max.toFixed(2),
+      min: ceil4(this.liquidityLimit.min),
+      max: floor4(this.liquidityLimit.max),
     };
 
     const { t } = this.props;
@@ -463,7 +475,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
             className="progress-label"
             style={{ textAlign: 'left', paddingLeft: '6px' }}
           >
-            100 ETH {t('presale.target')}
+            75 ETH {t('presale.target')}
           </div>
         </div>
         <div className="presale-content-container">
@@ -473,9 +485,9 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
               <h1>
                 {t('title')} {t('presale.id')}
               </h1>
-              <h2>1 ETH = 60 WOWS</h2>
+              <h2>1 ETH = 80 WOWS</h2>
               <h3>
-                100 ETH {t('presale.target')} - 6000 WOWS{' '}
+                75 ETH {t('presale.target')} - 6000 WOWS{' '}
                 {t('presale.available')}
               </h3>
               <table>
@@ -507,7 +519,12 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
                   </tr>
                   <tr>
                     <td />
-                    <td>{t('presale.limits')}</td>
+                    <td>
+                      {t('presale.purchase', {
+                        min: Presale.EthMin,
+                        max: Presale.EthMax,
+                      })}
+                    </td>
                   </tr>
                 </tbody>
               </table>

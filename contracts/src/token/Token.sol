@@ -196,7 +196,8 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
   ) internal override {
     // Minters are always allowed to transfer
     require(
-      hasRole(MINTER_ROLE, sender) || _checkForUniV2Pair(recipient),
+      hasRole(MINTER_ROLE, sender) ||
+        (_checkForUniV2Pair(sender) && _checkForUniV2Pair(recipient)),
       'Only minters and != pairs'
     );
     super._transfer(sender, recipient, amount);

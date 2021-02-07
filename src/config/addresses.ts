@@ -15,9 +15,9 @@ const addresses = {
   },
   4: {
     //rinkeby
-    token: '0x85872c77C82eBb1D2e1352E42b0175a9bb30317E',
-    presale: '0xDA181E57b46Baa5F6F71ea25b0F76C3637910265',
-    univ2Pool: '0xf021bD30cC5a287537A195F87D7586c996fA9440',
+    token: '0x14a2706903Cb41444fe3C748a8C32372d608bEb5',
+    presale: '0xB9cF9d90d39Ee86f08bC70b01d23Afe2524F2112',
+    univ2Pool: '0xC2c4e4B52a042Eb79438991BB1632cc8115b6006',
   },
   1337: {
     //private

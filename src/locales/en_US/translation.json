@@ -18,7 +18,6 @@
     "contract": "$t(presale.id) runs through our presale contract:",
     "locked": "50% is automatically locked ready for liquidity",
     "wallet": "50% is sent to vested team wallet for marketing & development",
-    "limits": "Purchase Min: 0.2 ETH - Max: 3 ETH",
     "followUs": "FOLLOW US HERE",
     "terms": "PLEASE ACKNOWLEDGE YOU HAVE READ TERMS & CONDITIONS HERE AND ARE IN AGREEMENT. ALL LIABILITY RESIDES WITH THE USER. RISK ONLY WHAT YOU ARE WILLING TO LOOSE",
     "purchase": "Purchase: Min {{min}} ETH - Max {{max}} ETH",
