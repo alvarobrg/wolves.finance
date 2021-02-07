@@ -14,6 +14,8 @@ import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/SafeERC20.sol';
 import '@openzeppelin/contracts/utils/ReentrancyGuard.sol';
 
+import '../../interfaces/IAddressRegistry.sol';
+import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
 import '../investment/interfaces/IStakeFarm.sol';
 
@@ -43,7 +45,7 @@ contract Crowdsale is Context, ReentrancyGuard {
   IERC20WolfMintable public token;
 
   // Address where funds are collected
-  address payable public wallet;
+  address payable private _wallet;
 
   // How many token units a buyer gets per wei.
   // The rate is the conversion between wei and the smallest and indivisible token unit.
@@ -120,15 +122,12 @@ contract Crowdsale is Context, ReentrancyGuard {
   }
 
   /**
+   * @param _addressRegistry IAdressRegistry to get wallet and uniV2Router02
    * @param _rate Number of token units a buyer gets per wei
    * @dev The rate is the conversion between wei and the smallest and indivisible
    * token unit. So, if you are using a rate of 1 with a ERC20Detailed token
    * with 3 decimals called TOK, 1 wei will give you 1 unit, or 0.001 TOK.
-   * @param _wallet Address where collected funds will be forwarded to
-   * @param _stakeFarm address of our UniV2 WETH/WOWS stake farm
    * @param _token Address of the token being sold
-   * @param _uniV2Router Address of uniswapV2Router02
-   * @param _pair Address of the WETH/WOWS pair
    * @param _cap Max amount of wei to be contributed
    * @param _investMin minimum investment in wei
    * @param _walletCap Max amount of wei to be contributed per wallet
@@ -138,12 +137,9 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @param _closingTime Crowdsale closing time
    */
   constructor(
+    IAddressRegistry _addressRegistry,
     uint256 _rate,
-    address payable _wallet,
-    IStakeFarm _stakeFarm,
     IERC20WolfMintable _token,
-    IUniswapV2Router02 _uniV2Router,
-    IERC20 _pair,
     uint256 _cap,
     uint256 _investMin,
     uint256 _walletCap,
@@ -153,26 +149,50 @@ contract Crowdsale is Context, ReentrancyGuard {
     uint256 _closingTime
   ) {
     require(_rate > 0, 'rate is 0');
-    require(_wallet != address(0), 'wallet is the zero address');
-    require(address(_token) != address(0), 'token is the zero address');
+    require(address(_token) != address(0), 'token is addr(0)');
     require(_cap > 0, 'cap is 0');
     require(_lpEth > 0, 'lpEth is 0');
     require(_lpToken > 0, 'lpToken is 0');
 
     // solhint-disable-next-line not-rely-on-time
-    require(
-      _openingTime >= block.timestamp,
-      'opening time is before current time'
-    );
+    require(_openingTime >= block.timestamp, 'opening > now');
     // solhint-disable-next-line max-line-length
-    require(_closingTime > _openingTime, 'opening time > closing time');
+    require(_closingTime > _openingTime, 'open > close');
+
+    // reverts if address is invalid
+    IUniswapV2Router02 _uniV2Router =
+      IUniswapV2Router02(
+        _addressRegistry.getRegistryEntry(
+          keccak256(abi.encodePacked('UniswapV2Router02'))
+        )
+      );
+    uniV2Router = _uniV2Router;
+
+    // get our liquidity pair
+    address _uniV2Pair =
+      IUniswapV2Factory(_uniV2Router.factory()).getPair(
+        address(_token),
+        _uniV2Router.WETH()
+      );
+    require(_uniV2Pair != address(0), 'invalid pair');
+    uniV2Pair = IERC20(_uniV2Pair);
+
+    // reverts if address is invalid
+    address _marketingWallet =
+      _addressRegistry.getRegistryEntry(
+        keccak256(abi.encodePacked('MarketingWallet'))
+      );
+    _wallet = payable(_marketingWallet);
+
+    // reverts if address is invalid
+    address _stakeFarm =
+      _addressRegistry.getRegistryEntry(
+        keccak256(abi.encodePacked('WethWowsStakeFarm'))
+      );
+    stakeFarm = IStakeFarm(_stakeFarm);
 
     rate = _rate;
-    wallet = _wallet;
-    stakeFarm = _stakeFarm;
     token = _token;
-    uniV2Router = _uniV2Router;
-    uniV2Pair = _pair;
     cap = _cap;
     investMin = _investMin;
     walletCap = _walletCap;
@@ -368,16 +388,20 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     // Calculate how many token we add into liquidity pool
     uint256 tokenToLp = (ethBalance.mul(tokenForLp)).div(ethForLp);
+    // Calculate amount unsold token
+    uint256 tokenUnsold = cap.sub(weiRaised).mul(rate);
 
     // Mint token we spend
-    require(token.mint(address(this), tokenToLp), 'minting failed');
+    require(
+      token.mint(address(this), tokenToLp.add(tokenUnsold)),
+      'minting failed'
+    );
 
-    _addLiquidity(wallet, wallet, ethBalance, tokenToLp);
+    _addLiquidity(_wallet, _wallet, ethBalance, tokenToLp);
 
-    // There should be no more WOWS if everything worked fine
-    // But let us make sure that we don't left corpse
-    uint256 tokenCorpse = token.balanceOf(address(this));
-    if (tokenCorpse > 0) token.transfer(wallet, tokenToLp);
+    // Transfer all tokens from this contract to _wallet
+    uint256 tokenInContract = token.balanceOf(address(this));
+    if (tokenInContract > 0) token.transfer(_wallet, tokenInContract);
 
     // finally whitelist uniV2 LP pool on token contract
     token.enableUniV2Pair(true);
@@ -472,7 +496,7 @@ contract Crowdsale is Context, ReentrancyGuard {
    * @dev Determines how ETH is stored/forwarded on purchases.
    */
   function _forwardFunds(uint256 weiAmount) internal {
-    wallet.transfer(weiAmount.div(2));
+    _wallet.transfer(weiAmount.div(2));
   }
 
   function _addLiquidity(

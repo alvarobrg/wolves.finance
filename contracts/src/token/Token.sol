@@ -12,6 +12,7 @@ import '@openzeppelin/contracts/access/AccessControl.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 import '@openzeppelin/contracts/token/ERC20/ERC20Capped.sol';
 
+import '../../interfaces/IAddressRegistry.sol';
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
 import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Pair.sol';
@@ -57,8 +58,8 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
   address public immutable uniV2Pair;
   bytes32 private immutable _uniV2PairCodeHash;
 
-  address public immutable teamWallet;
-  address public immutable marketingWallet;
+  address private immutable _teamWallet;
+  address private immutable _marketingWallet;
 
   /**
    * @dev booster address for rewards
@@ -78,15 +79,15 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
   /**
    * @dev Construct a token instance
    *
-   * @param _teamWallet The team wallet to receive initial supply
+   * @param _deployer the deployer who deployys the contract
+   * @dev _deployer gets initial admin rights which should be revoked
+   * after deploy.
+   * @param _addressRegistry registry to get required contracts
    */
-  constructor(
-    address _owner,
-    address _marketingWallet,
-    address _teamWallet,
-    address _uniV2Factory,
-    address _uniV2Router
-  ) ERC20Capped(MAX_SUPPLY) ERC20(TOKEN_NAME, TOKEN_SYMBOL) {
+  constructor(address _deployer, IAddressRegistry _addressRegistry)
+    ERC20Capped(MAX_SUPPLY)
+    ERC20(TOKEN_NAME, TOKEN_SYMBOL)
+  {
     // Initialize ERC20 base
     _setupDecimals(TOKEN_DECIMALS);
 
@@ -96,27 +97,47 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
      *   1.) 1800 token for development costs (audits / bug-bounty ...)
      *   2.) 1800 token for marketing (influencer / design ...)
      */
-    _mint(_marketingWallet, 3600 * 1e18);
-    marketingWallet = _marketingWallet;
+    // reverts if address is invalid
+    address __marketingWallet =
+      _addressRegistry.getRegistryEntry(
+        keccak256(abi.encodePacked('MarketingWallet'))
+      );
+    _mint(__marketingWallet, 3600 * 1e18);
+    _marketingWallet = __marketingWallet;
 
     /*
      * Mint 7500 token into teams wallet
      *
      *   1.) 500 tokens * 15 month = 7500 team rewards
      */
-    _mint(_teamWallet, 7500 * 1e18);
-    teamWallet = _teamWallet;
+    // reverts if address is invalid
+    address __teamWallet =
+      _addressRegistry.getRegistryEntry(
+        keccak256(abi.encodePacked('TeamWallet'))
+      );
+    _mint(__teamWallet, 7500 * 1e18);
+    _teamWallet = __teamWallet;
 
     // Multi-sig teamwallet has initial admin rights, eg for adding minters
-    _setupRole(DEFAULT_ADMIN_ROLE, _marketingWallet);
+    _setupRole(DEFAULT_ADMIN_ROLE, __marketingWallet);
 
     // deployer has initial Admin rights, will be revoked after setup
-    _setupRole(DEFAULT_ADMIN_ROLE, _owner);
+    _setupRole(DEFAULT_ADMIN_ROLE, _deployer);
+
+    // reverts if address is invalid
+    IUniswapV2Router02 _uniV2Router =
+      IUniswapV2Router02(
+        _addressRegistry.getRegistryEntry(
+          keccak256(abi.encodePacked('UniswapV2Router02'))
+        )
+      );
 
     // Create the UniV2 liquidity pool
-    address _weth = IUniswapV2Router02(_uniV2Router).WETH();
     address _uniV2Pair =
-      IUniswapV2Factory(_uniV2Factory).createPair(address(this), _weth);
+      IUniswapV2Factory(_uniV2Router.factory()).createPair(
+        address(this),
+        _uniV2Router.WETH()
+      );
     uniV2Pair = _uniV2Pair;
     // Retrieve the code hash of UniV2 pair which is same for all other univ2 pairs
     bytes32 codeHash;
@@ -256,10 +277,10 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler {
 
     // distribute the fee
     uint256 absFee = _amount.mul(_fee).div(1e6);
-    _transfer(address(this), teamWallet, absFee.mul(_toTeam).div(1e6));
+    _transfer(address(this), _teamWallet, absFee.mul(_toTeam).div(1e6));
     _transfer(
       address(this),
-      marketingWallet,
+      _marketingWallet,
       absFee.mul(_toMarketing).div(1e6)
     );
 

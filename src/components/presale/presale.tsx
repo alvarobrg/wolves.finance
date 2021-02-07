@@ -170,7 +170,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
 
   onPresaleState(params: PresaleResult): void {
     if (params['error'] === undefined) {
-      this._updateInvestLimits(params.state.ethUser, params.state.ethInvested);
+      this._updateInvestLimits(params.state.ethInvested);
       this.setState(params.state);
       this._manageTimers(
         params.state.isOpen,
@@ -178,7 +178,7 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
         params.state.timeToNextEvent
       );
     } else {
-      this._updateInvestLimits(0, 0);
+      this._updateInvestLimits(0);
       this.setState(FAILURESTATE);
       this._manageTimers(false, true, 0);
     }
@@ -344,15 +344,9 @@ class Presale extends Component<PRESALEPROPS, PRESALESTATE> {
       : '--:--';
   }
 
-  _updateInvestLimits(ethUser: number, ethInvested: number): void {
-    this.investLimit.max = Math.min(
-      this.state.connected ? ethUser : Presale.EthMax,
-      Presale.EthMax - ethInvested
-    );
+  _updateInvestLimits(ethInvested: number): void {
+    this.investLimit.max = Presale.EthMax - ethInvested;
     this.liquidityLimit.max = this.investLimit.max * Presale.buy2Total;
-    if (this.state.connected && this.liquidityLimit.max > ethUser)
-      this.liquidityLimit.max = ethUser;
-
     this._validateInput(this.inputRef.current?.value);
   }
 

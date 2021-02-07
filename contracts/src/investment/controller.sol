@@ -11,6 +11,7 @@ pragma solidity >=0.6.0 <0.8.0;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import '@openzeppelin/contracts/math/SafeMath.sol';
 
+import '../../interfaces/IAddressRegistry.sol';
 import './interfaces/IController.sol';
 import './interfaces/IFarm.sol';
 import './interfaces/IRewardHandler.sol';
@@ -78,13 +79,18 @@ contract Controller is IController, Ownable {
    * recipients.
    */
   constructor(
-    address _owner,
+    IAddressRegistry _addressRegistry,
     address _rewardHandler,
     address _previousController
   ) {
     setRewardHandler(_rewardHandler);
     previousController = _previousController;
-    transferOwnership(_owner);
+
+    address _marketingWallet =
+      _addressRegistry.getRegistryEntry(
+        keccak256(abi.encodePacked('MarketingWallet'))
+      );
+    transferOwnership(_marketingWallet);
   }
 
   /* ========== ROUTING ========== */
