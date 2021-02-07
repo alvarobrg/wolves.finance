@@ -14,6 +14,10 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 contract Booster is Ownable {
   using SafeERC20 for IERC20;
 
+  constructor(address _owner) {
+    transferOwnership(_owner);
+  }
+
   // dummy booster implementation, send token to next implementation
   function transferTo(address _token, address _recipient) external onlyOwner {
     require(_recipient != address(0), 'burn not allowed');

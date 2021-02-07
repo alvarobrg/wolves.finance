@@ -40,7 +40,10 @@ Steps to setup the WOWS environment.
 > \- rewardProvided 0\
 > \- rewardfee 2\*1e4 (0.02)
 
-6.) deploy booster.sol
+6.) deploy booster.sol\
+-> parameter:\
+
+> \- \_owner address\
 
 7.) call token.sol setBooster\
 -> parameter:\

@@ -21,6 +21,7 @@
 }
 
 .info-container {
+  margin-top: 10px;
   width: 100%;
   background-color: var(--wolves-blue-dk);
   color: white;
@@ -189,7 +190,7 @@ h3 {
   opacity: 0.5;
 }
 
-@media all and (max-width: 940px) {
+@media all and (max-width: 965px) {
   .presale-content-container {
     flex-direction: column;
   }

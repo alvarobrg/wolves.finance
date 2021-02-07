@@ -16,7 +16,7 @@
 .ticker-inner {
   flex: 1 1;
   align-self: center;
-  min-width: 370px;
+  min-width: 340px;
 }
 
 .ticker-text {
