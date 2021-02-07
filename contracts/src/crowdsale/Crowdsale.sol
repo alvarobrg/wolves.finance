@@ -18,6 +18,7 @@ import '../../interfaces/uniswap/IUniswapV2Factory.sol';
 import '../../interfaces/uniswap/IUniswapV2Router02.sol';
 
 import '../investment/interfaces/IStakeFarm.sol';
+import '../utils/AddressBook.sol';
 import '../utils/interfaces/IAddressRegistry.sol';
 
 interface IERC20WolfMintable is IERC20 {
@@ -38,7 +39,7 @@ interface IERC20WolfMintable is IERC20 {
  * the methods to add functionality. Consider using 'super' where appropriate to concatenate
  * behavior.
  */
-contract Crowdsale is Context, ReentrancyGuard {
+contract Crowdsale is Context, ReentrancyGuard, AddressBook {
   using SafeMath for uint256;
   using SafeERC20 for IERC20WolfMintable;
 
@@ -163,9 +164,7 @@ contract Crowdsale is Context, ReentrancyGuard {
     // reverts if address is invalid
     IUniswapV2Router02 _uniV2Router =
       IUniswapV2Router02(
-        _addressRegistry.getRegistryEntry(
-          keccak256(abi.encodePacked('UniswapV2Router02'))
-        )
+        _addressRegistry.getRegistryEntry(UNISWAP_V2_ROUTER02)
       );
     uniV2Router = _uniV2Router;
 
@@ -180,16 +179,12 @@ contract Crowdsale is Context, ReentrancyGuard {
 
     // reverts if address is invalid
     address _marketingWallet =
-      _addressRegistry.getRegistryEntry(
-        keccak256(abi.encodePacked('MarketingWallet'))
-      );
+      _addressRegistry.getRegistryEntry(MARKETING_WALLET);
     _wallet = payable(_marketingWallet);
 
     // reverts if address is invalid
     address _stakeFarm =
-      _addressRegistry.getRegistryEntry(
-        keccak256(abi.encodePacked('WethWowsStakeFarm'))
-      );
+      _addressRegistry.getRegistryEntry(WETH_WOWS_STAKE_FARM);
     stakeFarm = IStakeFarm(_stakeFarm);
 
     rate = _rate;
