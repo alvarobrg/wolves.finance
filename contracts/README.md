@@ -2,26 +2,30 @@ Steps to setup the WOWS environment.
 
 \*\*\*\*\*\* Main \*\*\*\*\*\*
 
-1.) deploy token.sol\
+1.) deploy AddressFactory\
 -> parameter:\
 
-> \- owner address\
-> \- gnosis marketing_wallet\
-> \- gnosis team_wallet\
-> \- UniV2Factory address\
-> \- UniV2Router02 address\
+> \- \_owner (the only address which can add addresses, most likely the deployer)
 
-2.) deploy controller.sol\
+2.) AddressFactory:: setRegistryEntry for UniswapV2Router02, MarketingWallet, TeamWallet
+
+3.) deploy token.sol\
 -> parameter:\
 
-> \- owner address\
+> \- deployer address\
+> \- IAddressFactory address\ <- must contain "UniswapV2Router02", "MarketingWallet" and "TeamWallet" keys\
+
+4.) deploy controller.sol\
+-> parameter:\
+
+> \- IAddressFactory address\
 > \- rewardHandler (right now its token.sol)\
 > \- previousController: 0 address / only for later updates\
 
-3.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
+5.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
 -> This is to allow controller to call into token.sol to distribute rewards
 
-4.) deploy UniV2StakeFarm.sol\
+6.) deploy UniV2StakeFarm.sol\
 -> parameter:\
 
 > \- owner address\
@@ -31,7 +35,7 @@ Steps to setup the WOWS environment.
 > \- controller: address controller.sol\
 > \- route: address of UniV2 WETH/USDT pool, can be 0 for test
 
-5.) call controller:: registerFarm\
+7.) call controller:: registerFarm\
 -> parameter:\
 
 > \- farmAddress UniV2StakeFarm address\
@@ -40,12 +44,14 @@ Steps to setup the WOWS environment.
 > \- rewardProvided 0\
 > \- rewardfee 2\*1e4 (0.02)
 
-6.) deploy booster.sol\
+8.) AddressFactory:: setRegistryEntry for WethWowsStakeFarm (see 6.)
+
+9.) deploy booster.sol\
 -> parameter:\
 
 > \- \_owner address\
 
-7.) call token.sol setBooster\
+10.) call token.sol setBooster\
 -> parameter:\
 
 > \- address of booster.sol
@@ -55,16 +61,13 @@ Steps to setup the WOWS environment.
 1.) deploy Crowdsale.sol\
 -> parameter:\
 
-> \- rate: 60\
-> \- wallet: gnosis marketing wallet\
-> \- farm: address of UniV2StakeFarm.sol\
+> \- addressRegistry\
+> \- rate: 80\
 > \- token: token.sol address\
-> \- UniV2Router02 address\
-> \- pair: address of uniswap v2 pair (token.sol::uniV2Pair())\
-> \- cap: 100\*1e18\
+> \- cap: 75\*1e18\
 > \- invest_min: 2\*1e17 (0.2 ETH)\
 > \- wallet_cap: 3\*1e18 (3 ETH)\
-> \- lpEth: 4412\
+> \- lpEth: 3750\
 > \- lptoken: 240000\
 > \- openingTime: presale start / for test maybe now + 1 Minute\
 > \- closingTime: presale end / for test maybe now + 2 Minutes
