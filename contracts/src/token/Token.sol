@@ -80,12 +80,9 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler, AddressBook {
   /**
    * @dev Construct a token instance
    *
-   * @param _deployer the deployer who deployys the contract
-   * @dev _deployer gets initial admin rights which should be revoked
-   * after deploy.
    * @param _addressRegistry registry to get required contracts
    */
-  constructor(address _deployer, IAddressRegistry _addressRegistry)
+  constructor(IAddressRegistry _addressRegistry)
     ERC20Capped(MAX_SUPPLY)
     ERC20(TOKEN_NAME, TOKEN_SYMBOL)
   {
@@ -116,9 +113,6 @@ contract WowsToken is ERC20Capped, AccessControl, IRewardHandler, AddressBook {
 
     // Multi-sig teamwallet has initial admin rights, eg for adding minters
     _setupRole(DEFAULT_ADMIN_ROLE, __marketingWallet);
-
-    // deployer has initial Admin rights, will be revoked after setup
-    _setupRole(DEFAULT_ADMIN_ROLE, _deployer);
 
     // reverts if address is invalid
     IUniswapV2Router02 _uniV2Router =
