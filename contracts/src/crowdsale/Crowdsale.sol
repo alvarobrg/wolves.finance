@@ -393,14 +393,17 @@ contract Crowdsale is Context, ReentrancyGuard, AddressBook {
       'minting failed'
     );
 
+    // We need to whitelist the pair before we addLiquidity with
+    // wallet recipient. If due to rounding issues parts of token
+    // has to be payed back, it would fail.
+    token.enableUniV2Pair(true);
+
+    // Add liquidity and send pool tokens to wallet
     _addLiquidity(_wallet, _wallet, ethBalance, tokenToLp);
 
     // Transfer all tokens from this contract to _wallet
     uint256 tokenInContract = token.balanceOf(address(this));
     if (tokenInContract > 0) token.transfer(_wallet, tokenInContract);
-
-    // finally whitelist uniV2 LP pool on token contract
-    token.enableUniV2Pair(true);
   }
 
   function testSetTimes() public {
