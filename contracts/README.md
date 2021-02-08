@@ -1,6 +1,6 @@
 Steps to setup the WOWS environment.
 
-\*\*\*\*\*\* Main \*\*\*\*\*\*
+<h2>****** MAIN DEPLOY ******</h2>
 
 1.) deploy AddressFactory\
 -> parameter:\
@@ -14,8 +14,7 @@ Steps to setup the WOWS environment.
 4.) deploy token.sol\
 -> parameter:\
 
-> \- deployer address\
-> \- IAddressFactory address\ <- must contain "UniswapV2Router02", "MarketingWallet" and "TeamWallet" keys\
+> \- IAddressFactory address\ <- must contain UNISWAP_V2_ROUTER02, MARKETING_WALLET and TEAM_WALLET keys, (AddressBook.sol)\
 
 5.) deploy controller.sol\
 -> parameter:\
@@ -24,10 +23,7 @@ Steps to setup the WOWS environment.
 > \- rewardHandler (right now its token.sol)\
 > \- previousController: 0 address / only for later updates\
 
-6.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
--> This is to allow controller to call into token.sol to distribute rewards
-
-7.) deploy UniV2StakeFarm.sol\
+6.) deploy UniV2StakeFarm.sol\
 -> parameter:\
 
 > \- owner address\
@@ -37,28 +33,14 @@ Steps to setup the WOWS environment.
 > \- controller: address controller.sol\
 > \- route: address of UniV2 WETH/USDT pool, can be 0 for test
 
-8.) call controller:: registerFarm\
--> parameter:\
+7.) AddressFactory:: setRegistryEntry for WethWowsStakeFarm (6.)
 
-> \- farmAddress UniV2StakeFarm address\
-> \- rewardCap (15.000 \*1e18)\
-> \- rewardPerDuration (5000 *2 / 52 *1e18) we have 2 week duration!\
-> \- rewardProvided 0\
-> \- rewardfee 2\*1e4 (0.02)
-
-9.) AddressFactory:: setRegistryEntry for WethWowsStakeFarm (see 6.)
-
-10.) deploy booster.sol\
+8.) deploy booster.sol\
 -> parameter:\
 
 > \- \_owner address\
 
-11.) call token.sol setBooster\
--> parameter:\
-
-> \- address of booster.sol
-
-\*\*\*\*\*\* Presale \*\*\*\*\*\*
+<h2>****** PRESALE DEPLOY ******</h2>
 
 1.) deploy Crowdsale.sol\
 -> parameter:\
@@ -74,12 +56,26 @@ Steps to setup the WOWS environment.
 > \- openingTime: presale start / for test maybe now + 1 Minute\
 > \- closingTime: presale end / for test maybe now + 2 Minutes
 
-2.) call token.sol::grantRole(token.sol.MINTER_ROLE(), Crowdsale.sol)
+<h2>****** SETUP ******</h2>
 
-\*\*\*\*\*\* Finally \*\*\*\*\*\*
+<h3>From MultiSig marketing wallet call:</h3>
 
-For deployment the token.sol contract has initially admin rights for the deployer
-and also for the multisig marketing wallet.
-We should remove the admin role for the deployer once all contracts are up and running:
+1.) call token.sol::grantRole(token.sol.REWARD_ROLE(), controller)\
+-> This is to allow controller to call into token.sol to distribute rewards
 
-1.) token.sol::revokeRole(token.sol.DEFAULT_ADMIN_ROLE, address(this));
+2.) call controller:: registerFarm\
+-> parameter:\
+
+> \- farmAddress UniV2StakeFarm address\
+> \- rewardCap (15.000 \*1e18)\
+> \- rewardPerDuration (5000 *2 / 52 *1e18) we have 2 week duration!\
+> \- rewardProvided 0\
+> \- rewardfee 2\*1e4 (0.02)
+
+3.) call token.sol setBooster\
+-> parameter:\
+
+> \- address of booster.sol
+
+4.) call token.sol::grantRole(token.sol.MINTER_ROLE(), Crowdsale.sol)\
+\!\!\! ONLY DURING PRESALE \!\!\!
